@@ -715,7 +715,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
         options.forEach(s=> s.classList.remove('choice-glow'));
         hideChoicePrompt();
 
-        if(chosen === winner){
+        if(chosen.dataset.key === winner.dataset.key){
           const twin = Array.from(boardEl.querySelectorAll('.cardSlot')).find(s=>
             s!==chosen && s.dataset.key===chosen.dataset.key && s.dataset.matched!=='true' && !s.classList.contains('gone')
           );
@@ -1139,7 +1139,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
         hideChoicePrompt();
         hideTargetPreview();
 
-        if(chosen === winner){
+        if(chosen.dataset.key === winner.dataset.key){
           const twin = Array.from(boardEl.querySelectorAll('.cardSlot')).find(s=>
             s!==chosen && s.dataset.key===chosen.dataset.key && s.dataset.matched!=='true' && !s.classList.contains('gone')
           );
