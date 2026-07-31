@@ -339,7 +339,7 @@
 
   <div class="screen" id="startScreen">
     <img id="titleCardImg" class="title-card-img" alt="関根商店神経衰弱">
-    <p style="margin-top:14px;">社員さん30人のカードで神経衰弱!<br>全ステージクリアを目指そう。</p>
+    <p style="margin-top:14px;">社員さん30人のカードで神経衰弱!<br>最終ステージは30枚の総力戦!全ステージクリアを目指そう。</p>
     <button class="btn lux-btn" id="startBtn">▶ スタート</button>
   </div>
 
@@ -387,7 +387,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
 (function(){
   const NON_EMPLOYEE_KEYS = ['card_back', 'title_card', 'janken_gu', 'janken_choki', 'janken_pa'];
   const EMP_KEYS = Object.keys(ASSETS).filter(k => !NON_EMPLOYEE_KEYS.includes(k));
-  const GROUP_SIZES = [4,5,6];
+  const GROUP_SIZES = [4,5,6,15];
 
   function b64src(key){ return 'data:image/webp;base64,' + ASSETS[key]; }
 
@@ -405,7 +405,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
   let score = 0;
   let moves = 0;
   let missCount = 0;
-  const STAGE_MAX_MISSES = [3,4,5];
+  const STAGE_MAX_MISSES = [3,4,5,7];
   function currentMaxMisses(){
     return STAGE_MAX_MISSES[stageIndex] !== undefined ? STAGE_MAX_MISSES[stageIndex] : 3;
   }
@@ -472,7 +472,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     deck = shuffle(deck);
 
     boardEl.innerHTML = '';
-    const cols = deck.length <= 12 ? 4 : 4;
+    const cols = deck.length >= 24 ? 5 : 4;
     boardEl.style.gridTemplateColumns = 'repeat('+cols+', 1fr)';
 
     deck.forEach((key, i)=>{
