@@ -165,6 +165,23 @@
     70% { transform:translate(-50%,-50%) scale(1.15) rotate(-2deg); opacity:1; }
     100% { transform:translate(-50%,-50%) scale(1.2) rotate(0deg); opacity:0; }
   }
+  #lightningFlash { position:fixed; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:24; }
+  #lightningFlash.strike { animation: lightningStrike 0.6s steps(1); }
+  @keyframes lightningStrike {
+    0% { opacity:0; } 8% { opacity:0.95; } 16% { opacity:0.1; }
+    28% { opacity:0.8; } 40% { opacity:0; } 52% { opacity:0.6; }
+    70% { opacity:0; } 100% { opacity:0; }
+  }
+  .bolt-emoji {
+    position:fixed; font-size:18vw; z-index:24; pointer-events:none;
+    text-shadow:0 0 30px #fff59d, 0 0 60px #ffd54f;
+    animation: boltPop 0.75s ease-out forwards;
+  }
+  @keyframes boltPop {
+    0% { transform:scale(0.3) rotate(-12deg); opacity:0; }
+    30% { transform:scale(1.4) rotate(8deg); opacity:1; }
+    100% { transform:scale(1.1) rotate(0deg); opacity:0; }
+  }
   #dangerFlash { position:fixed; inset:0; background:#b71c1c; opacity:0; pointer-events:none; z-index:21; }
   #dangerFlash.pulse { animation: dangerPulse 0.5s ease-in-out 3; }
   @keyframes dangerPulse { 0%,100%{ opacity:0; } 50%{ opacity:0.55; } }
@@ -254,10 +271,13 @@
   .lux-btn:active { transform:translateY(3px); box-shadow:0 1px 0 #8a5500, 0 3px 8px rgba(0,0,0,0.5); }
   .screen p { font-size:15px; margin-bottom:8px; line-height:1.7; color:#e0e0e0; }
   .btn { margin-top:18px; padding:14px 34px; font-size:17px; font-weight:bold; border:none; border-radius:8px; background:#ffb300; color:#333; }
-  .janken-btn { margin-top:0; padding:14px 16px; font-size:26px; border-radius:50%; width:80px; height:80px; display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:13px; }
+  .janken-btn { margin-top:0; padding:10px; border-radius:50%; width:120px; height:120px; display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:15px; font-weight:900; border:4px solid #a86a00; box-shadow:0 6px 0 #8a5500, 0 10px 20px rgba(0,0,0,0.5); }
+  .janken-btn .hand-emoji { font-size:44px; line-height:1; margin-bottom:2px; }
+  .janken-btn:active { transform:translateY(4px); box-shadow:0 2px 0 #8a5500, 0 4px 10px rgba(0,0,0,0.5); }
   .janken-btn.disabled { opacity:0.4; pointer-events:none; }
-  .janken-in h1 { animation: jankenTitleIn 0.6s cubic-bezier(.2,1.6,.3,1); }
-  @keyframes jankenTitleIn { 0%{ transform:scale(0.2) rotate(-20deg); opacity:0; } 60%{ transform:scale(1.2) rotate(6deg); opacity:1; } 100%{ transform:scale(1) rotate(0deg); opacity:1; } }
+  .janken-in h1 { animation: jankenTitleIn 0.6s cubic-bezier(.2,1.6,.3,1); font-size:38px !important; }
+  @keyframes jankenTitleIn { 0%{ transform:scale(0.2) rotate(-20deg); opacity:0; } 60%{ transform:scale(1.3) rotate(8deg); opacity:1; } 100%{ transform:scale(1) rotate(0deg); opacity:1; } }
+  #jankenResult { font-size:24px !important; }
   .btn:active { background:#ff9800; }
 
   #confettiLayer { position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:15; }
@@ -312,20 +332,21 @@
     <button class="btn" id="retryJokerBtn">もういちど</button>
   </div>
 
+  <div id="lightningFlash"></div>
   <div id="dangerFlash"></div>
   <div id="darkFade"></div>
   <div id="matchFlash"></div>
   <div id="luckyLayer"></div>
 
   <div class="screen hidden" id="jankenScreen" style="background:rgba(10,14,30,0.94); z-index:25;">
-    <h1 style="font-size:26px;">⚔️ いざ勝負!! ⚔️</h1>
-    <p>純子とじゃんけん!勝てばボーナス、負けたらハートが1つ減るよ</p>
-    <div id="jankenHands" style="display:flex; gap:16px; margin-top:10px;">
-      <button class="btn janken-btn" data-hand="rock">✊ グー</button>
-      <button class="btn janken-btn" data-hand="scissors">✌️ チョキ</button>
-      <button class="btn janken-btn" data-hand="paper">✋ パー</button>
+    <h1 style="font-size:38px;">⚔️ いざ勝負!! ⚔️</h1>
+    <p style="font-size:16px;">純子とガチじゃんけん!勝てばラッキーの2択、負けたら即ゲームオーバー!!</p>
+    <div id="jankenHands" style="display:flex; gap:20px; margin-top:16px;">
+      <button class="btn janken-btn" data-hand="rock"><span class="hand-emoji">✊</span>グー</button>
+      <button class="btn janken-btn" data-hand="scissors"><span class="hand-emoji">✌️</span>チョキ</button>
+      <button class="btn janken-btn" data-hand="paper"><span class="hand-emoji">✋</span>パー</button>
     </div>
-    <div id="jankenResult" style="margin-top:18px; font-size:20px; font-weight:bold; min-height:60px;"></div>
+    <div id="jankenResult" style="margin-top:22px; font-weight:bold; min-height:80px;"></div>
   </div>
   <div id="confettiLayer"></div>
 </div>
@@ -437,7 +458,7 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     hideAllScreens();
   }
 
-  const INSTANT_SPECIAL_KEYS = ['card_shacho','card_joumu','card_sengoku','card_junko'];
+  const INSTANT_SPECIAL_KEYS = ['card_shacho','card_joumu','card_sengoku','card_junko','card_ishihara','card_takahashi','card_nakamura'];
 
   function onCardClick(slot){
     if(shachoChoiceActive){
@@ -536,9 +557,10 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       celebrateLuckyChance(pairForFx[0], pairForFx[1]);
       cleanupGone();
       setTimeout(()=>{
-        startCardChoiceBonus(2, {
-          promptText: '✨ 社長のラッキーチャンス!どちらか1枚選んでね ✨',
-          pickScore: 20
+        startGambleChoice(2, {
+          promptText: '✨ 社長のラッキーチャンス!どちらか1枚選んでね(はずれたらゲームオーバー) ✨',
+          winScore: 60,
+          missReason: '社長との勝負に負けてしまった…'
         });
       }, 900);
     } else if(key === 'card_joumu'){
@@ -550,9 +572,12 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       announceSpecial('常務パワー!!回転タイム!!');
       setTimeout(()=>{ slot.classList.add('gone'); if(twin) twin.classList.add('gone'); }, 950);
       setTimeout(()=>{
-        startCardChoiceBonus(4, {
-          promptText: '常務パワー!4枚から1枚選んでね!',
-          pickScore: 20
+        showBigCardReveal('card_joumu', ()=>{
+          startGambleChoice(4, {
+            promptText: '常務パワー!4枚から1枚選んでね!(はずれたらゲームオーバー)',
+            winScore: 40,
+            missReason: '常務の勝負に負けてしまった…'
+          });
         });
       }, 1050);
     } else if(key === 'card_sengoku'){
@@ -565,9 +590,10 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       announceSpecial('仙石シャッフル!!かき混ぜます!!');
       setTimeout(()=>{ slot.classList.add('gone'); if(twin) twin.classList.add('gone'); }, 950);
       setTimeout(()=>{
-        startCardChoiceBonus(8, {
-          promptText: '仙石シャッフル!8枚から1枚選んでね!',
-          pickScore: 20
+        startGambleChoice(8, {
+          promptText: '仙石シャッフル!8枚から1枚選んでね!(はずれたらゲームオーバー)',
+          winScore: 60,
+          missReason: '仙石の勝負に負けてしまった…'
         });
       }, 1150);
     } else if(key === 'card_junko'){
@@ -577,6 +603,44 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       celebrateMatch(pairForFx[0], pairForFx[1]);
       cleanupGone();
       setTimeout(startJankenBattle, 900);
+    } else if(key === 'card_ishihara'){
+      finishMatch();
+      score += 10;
+      updateTopbar();
+      celebrateMatch(pairForFx[0], pairForFx[1]);
+      lightningEffect();
+      announceSpecial('石原の稲妻!!⚡⚡⚡');
+      cleanupGone();
+      setTimeout(startIshiharaGamble, 1050);
+    } else if(key === 'card_takahashi'){
+      finishMatch();
+      score += 10;
+      updateTopbar();
+      celebrateMatch(pairForFx[0], pairForFx[1]);
+      announceSpecial('せっかち発動!!⏱️');
+      cleanupGone();
+      setTimeout(()=>{
+        startGambleChoice(2, {
+          promptText: '⏱️ せっかち発動!どちらか1枚選んでね!(はずれたらゲームオーバー) ⏱️',
+          winScore: 30,
+          missReason: '高橋のせっかちで勝負に負けてしまった…'
+        });
+      }, 900);
+    } else if(key === 'card_nakamura'){
+      finishMatch();
+      score += 10;
+      updateTopbar();
+      celebrateMatch(pairForFx[0], pairForFx[1]);
+      playFestivalMusic();
+      announceSpecial('まろちゃんのお祭り騒ぎ!!🎉🏮');
+      cleanupGone();
+      setTimeout(()=>{
+        startGambleChoice(30, {
+          promptText: '🏮 お祭りチャンス!30枚から1枚選んでね!(はずれたらゲームオーバー) 🏮',
+          winScore: 80,
+          missReason: 'まろちゃんのお祭りで勝負に負けてしまった…'
+        });
+      }, 1400);
     }
   }
 
@@ -591,6 +655,89 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     el.style.transform = 'translate(-50%,-50%)';
     layer.appendChild(el);
     setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 950);
+  }
+
+  function showBigCardReveal(key, callback){
+    const layer = document.getElementById('luckyLayer');
+    const img = document.createElement('img');
+    img.className = 'joker-card-big';
+    img.style.boxShadow = '0 0 40px rgba(255,213,79,0.9), 0 0 90px rgba(255,213,79,0.55), 0 10px 30px rgba(0,0,0,0.7)';
+    img.src = b64src(key);
+    layer.appendChild(img);
+    setTimeout(()=>{
+      if(img.parentNode) img.parentNode.removeChild(img);
+      if(callback) callback();
+    }, 1600);
+  }
+
+  function lightningEffect(){
+    const flash = document.getElementById('lightningFlash');
+    flash.classList.remove('strike'); void flash.offsetWidth; flash.classList.add('strike');
+    const layer = document.getElementById('luckyLayer');
+    for(let i=0;i<3;i++){
+      setTimeout(()=>{
+        const bolt = document.createElement('div');
+        bolt.className = 'bolt-emoji';
+        bolt.textContent = '⚡';
+        bolt.style.left = (15 + Math.random()*70) + 'vw';
+        bolt.style.top = (5 + Math.random()*30) + 'vh';
+        layer.appendChild(bolt);
+        setTimeout(()=>{ if(bolt.parentNode) bolt.parentNode.removeChild(bolt); }, 750);
+      }, i*130);
+    }
+  }
+
+  // 石原ギャンブル: 16枚から1枚選び、大当たりなら即ペア成立、外れたら石原チャンス(2択)で救済
+  function startIshiharaGamble(){
+    const candidates = Array.from(boardEl.querySelectorAll('.cardSlot')).filter(s=>
+      !s.classList.contains('flipped') && s.dataset.matched !== 'true' && !s.classList.contains('gone')
+    );
+    if(candidates.length < 2){ locked = false; checkStageClear(); return; }
+
+    const count = Math.min(16, candidates.length);
+    const options = shuffle(candidates).slice(0, count);
+    const winner = options[Math.floor(Math.random()*options.length)];
+
+    options.forEach(s=> s.classList.add('choice-glow'));
+    showChoicePrompt('⚡ 石原の稲妻!'+count+'枚から1枚選んでね(大当たりを探せ!) ⚡');
+
+    shachoChoiceActive = {
+      options,
+      onPick: function(chosen){
+        options.forEach(s=> s.classList.remove('choice-glow'));
+        hideChoicePrompt();
+
+        if(chosen === winner){
+          const twin = Array.from(boardEl.querySelectorAll('.cardSlot')).find(s=>
+            s!==chosen && s.dataset.key===chosen.dataset.key && s.dataset.matched!=='true' && !s.classList.contains('gone')
+          );
+          if(twin){
+            chosen.classList.add('flipped'); twin.classList.add('flipped');
+            setTimeout(()=>{
+              chosen.dataset.matched='true'; twin.dataset.matched='true';
+              chosen.classList.add('matched'); twin.classList.add('matched');
+              matchedCount++;
+              score += 50;
+              updateTopbar();
+              announceSpecial('大当たり!!🎊');
+              celebrateMatch(chosen, twin);
+              setTimeout(()=>{ chosen.classList.add('gone'); twin.classList.add('gone'); }, 700);
+              setTimeout(()=>{ locked = false; checkStageClear(); }, 750);
+            }, 500);
+          } else {
+            locked = false; checkStageClear();
+          }
+        } else {
+          announceSpecial('はずれ…でも石原チャンス!');
+          setTimeout(()=>{
+            startCardChoiceBonus(2, {
+              promptText: '石原チャンス!どちらか1枚選んでね!',
+              pickScore: 20
+            });
+          }, 950);
+        }
+      }
+    };
   }
 
   // ---------- 音 ----------
@@ -646,6 +793,11 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     beep(60, 0.7, 'square', 0.25, 780);
   }
 
+  function playFestivalMusic(){
+    const melody = [523,659,784,659,784,880,784,659,523,659,784,1047];
+    melody.forEach((f,i)=>beep(f, 0.16, 'triangle', 0.16, i*110));
+  }
+
   function onJokerHit(){
     playDoomSound();
     const appEl = document.getElementById('app');
@@ -682,12 +834,7 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
 
   function onMissLimitReached(){
     locked = true;
-    showSadOverlay('ゲームセット', ()=>{
-      document.getElementById('gameOverTitle').textContent = '💔 ゲームセット';
-      document.getElementById('gameOverReason').textContent = '失敗が'+MAX_MISSES+'回になりました…';
-      document.getElementById('gameOverInfo').textContent = 'スコア: '+score+' / めくった回数: '+moves;
-      showScreen('gameOverScreen');
-    });
+    onGambleGameOver('失敗が'+MAX_MISSES+'回になってしまった…');
   }
 
   const LUCKY_WORDS = ['ラッキー!!!','やったね!','ナイス!!','グッジョブ!'];
@@ -919,6 +1066,94 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     };
   }
 
+  // 当たり1枚・残りはずれのギャンブル演出(はずれたら即ゲームオーバー)
+  function onGambleGameOver(reasonText){
+    playDoomSound();
+    setTimeout(playDoomSound, 500);
+    const appEl = document.getElementById('app');
+    const dangerFlash = document.getElementById('dangerFlash');
+    const darkFade = document.getElementById('darkFade');
+    appEl.classList.add('joker-shake');
+    dangerFlash.classList.add('pulse');
+    darkFade.classList.add('on');
+
+    const layer = document.getElementById('luckyLayer');
+    const bigText = document.createElement('div');
+    bigText.className = 'joker-text';
+    bigText.textContent = '大ハズレ!!!';
+    layer.appendChild(bigText);
+
+    const cardImg = document.createElement('img');
+    cardImg.className = 'joker-card-big';
+    cardImg.src = b64src('joker_card');
+    layer.appendChild(cardImg);
+
+    setTimeout(()=>{ appEl.classList.remove('joker-shake'); void appEl.offsetWidth; appEl.classList.add('joker-shake'); }, 1000);
+    setTimeout(()=>{ appEl.classList.remove('joker-shake'); }, 2600);
+    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); void dangerFlash.offsetWidth; dangerFlash.classList.add('pulse'); }, 900);
+    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); }, 2400);
+    setTimeout(()=>{
+      if(bigText.parentNode) bigText.parentNode.removeChild(bigText);
+      if(cardImg.parentNode) cardImg.parentNode.removeChild(cardImg);
+      darkFade.classList.remove('on');
+      document.getElementById('gameOverTitle').textContent = '💥😭 大ハズレ!! 😭💥';
+      document.getElementById('gameOverReason').textContent = reasonText + '…KAWAMURA地獄へようこそ…';
+      document.getElementById('gameOverInfo').textContent = 'スコア: '+score+' / めくった回数: '+moves;
+      showScreen('gameOverScreen');
+    }, 2900);
+  }
+
+  function startGambleChoice(n, opts){
+    opts = opts || {};
+    const promptText = opts.promptText || (n+'枚から1枚選んでね!(はずれたらゲームオーバー)');
+    const winScore = opts.winScore !== undefined ? opts.winScore : 50;
+    const missReason = opts.missReason || 'はずれてしまった…';
+
+    const candidates = Array.from(boardEl.querySelectorAll('.cardSlot')).filter(s=>
+      !s.classList.contains('flipped') && s.dataset.matched !== 'true' && !s.classList.contains('gone')
+    );
+    if(candidates.length < 2){ locked = false; checkStageClear(); return; }
+
+    const count = Math.min(n, candidates.length);
+    const options = shuffle(candidates).slice(0, count);
+    const winner = options[Math.floor(Math.random()*options.length)];
+
+    options.forEach(s=> s.classList.add('choice-glow'));
+    showChoicePrompt(promptText);
+
+    shachoChoiceActive = {
+      options,
+      onPick: function(chosen){
+        options.forEach(s=> s.classList.remove('choice-glow'));
+        hideChoicePrompt();
+
+        if(chosen === winner){
+          const twin = Array.from(boardEl.querySelectorAll('.cardSlot')).find(s=>
+            s!==chosen && s.dataset.key===chosen.dataset.key && s.dataset.matched!=='true' && !s.classList.contains('gone')
+          );
+          if(twin){
+            chosen.classList.add('flipped'); twin.classList.add('flipped');
+            setTimeout(()=>{
+              chosen.dataset.matched='true'; twin.dataset.matched='true';
+              chosen.classList.add('matched'); twin.classList.add('matched');
+              matchedCount++;
+              score += winScore;
+              updateTopbar();
+              announceSpecial('大当たり!!🎉');
+              celebrateMatch(chosen, twin);
+              setTimeout(()=>{ chosen.classList.add('gone'); twin.classList.add('gone'); }, 700);
+              setTimeout(()=>{ locked = false; checkStageClear(); }, 750);
+            }, 500);
+          } else {
+            locked = false; checkStageClear();
+          }
+        } else {
+          onGambleGameOver(missReason);
+        }
+      }
+    };
+  }
+
   const HAND_EMOJI = {rock:'✊', scissors:'✌️', paper:'✋'};
 
   function judgeJanken(player, cpu){
@@ -981,12 +1216,7 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
   }
 
   function onJankenLose(){
-    showSadOverlay('負け…!!', ()=>{
-      document.getElementById('gameOverTitle').textContent = '😭 じゃんけん負け…';
-      document.getElementById('gameOverReason').textContent = '純子とのじゃんけんに負けてしまった…';
-      document.getElementById('gameOverInfo').textContent = 'スコア: '+score+' / めくった回数: '+moves;
-      showScreen('gameOverScreen');
-    });
+    onGambleGameOver('純子とのじゃんけんに負けてしまった…');
   }
 
   document.querySelectorAll('.janken-btn').forEach(btn=>{
