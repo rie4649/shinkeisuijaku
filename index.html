@@ -6,11 +6,17 @@
 <title>関根商店 神経衰弱</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
-  html,body { width:100%; height:100%; background:#0f3d2e; font-family:'Hiragino Sans','Yu Gothic',sans-serif; overflow:hidden; }
+  html,body { width:100%; height:100%;
+    background:
+      radial-gradient(circle at 50% 30%, rgba(255,255,255,0.35), transparent 60%),
+      radial-gradient(circle at 50% 100%, #b8791f 0%, #8a5a15 55%, #5c3a0d 100%),
+      linear-gradient(135deg, #f4d879, #d9a441 40%, #a5691e 100%);
+    background-blend-mode: screen, normal, normal;
+    font-family:'Hiragino Sans','Yu Gothic',sans-serif; overflow:hidden; }
   #app { position:relative; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; }
 
   /* ---------- ヘッダー ---------- */
-  #topbar { width:100%; display:flex; justify-content:space-between; align-items:center; padding:8px 10px; color:#f5e3a1; font-weight:bold; font-size:13px; z-index:5; gap:4px; }
+  #topbar { width:100%; display:flex; justify-content:space-between; align-items:center; padding:8px 10px; color:#3a2410; font-weight:bold; font-size:13px; z-index:5; gap:4px; text-shadow:0 1px 2px rgba(255,255,255,0.4); }
   #topbar span.label { opacity:0.75; font-size:10px; display:block; }
   #topbar > div { text-align:center; }
 
@@ -41,13 +47,24 @@
     font-family:'Courier New',monospace;
     font-weight:900;
     font-size:15vw;
-    color:#fff176;
-    -webkit-text-stroke:3px #e65100;
-    text-shadow:0 0 30px #ffd54f, 0 0 60px #ff6f00;
+    background:linear-gradient(100deg, #fff6cf, #ffd54f 25%, #fff6cf 50%, #ffb300 75%, #fff6cf 100%);
+    background-size:220% auto;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    -webkit-text-stroke:3px #8a3d00;
+    filter:drop-shadow(0 0 22px #ffd54f) drop-shadow(0 0 46px #ff6f00);
     letter-spacing:2px;
     white-space:nowrap;
-    animation: luckyPop 0.9s cubic-bezier(.2,1.4,.4,1) forwards;
+    animation: luckyPop 0.9s cubic-bezier(.2,1.4,.4,1) forwards, luckyShine 0.9s linear;
   }
+  @keyframes luckyShine { 0%{ background-position:0% center; } 100%{ background-position:-220% center; } }
+  .lucky-rays {
+    position:absolute; width:70vmax; height:70vmax; pointer-events:none;
+    background:repeating-conic-gradient(rgba(255,213,79,0.35) 0deg 4deg, transparent 4deg 16deg);
+    border-radius:50%;
+    animation: raysSpin 1.1s linear forwards, raysFade 1.1s ease-out forwards;
+  }
+  @keyframes raysSpin { from{ transform:translate(-50%,-50%) rotate(0deg); } to{ transform:translate(-50%,-50%) rotate(80deg); } }
+  @keyframes raysFade { 0%{ opacity:0.9; } 100%{ opacity:0; } }
   @keyframes luckyPop {
     0% { transform:scale(0.2) rotate(-15deg); opacity:0; }
     30% { transform:scale(1.3) rotate(6deg); opacity:1; }
@@ -85,6 +102,68 @@
   .screen { position:absolute; inset:0; background:rgba(10,14,30,0.92); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; z-index:10; padding:24px; }
   .hidden { display:none !important; }
   .screen h1 { font-family:'Courier New',monospace; font-size:30px; letter-spacing:3px; color:#ffd54f; text-shadow:2px 2px 0 #e65100, 0 0 18px rgba(255,213,79,0.5); margin-bottom:14px; }
+
+  /* ---------- スタート画面の豪華フレーム ---------- */
+  .lux-panel {
+    position:relative;
+    width:100%; max-width:420px;
+    background: linear-gradient(160deg, #10234f 0%, #0b1733 100%);
+    border:3px solid #d4af37;
+    border-radius:18px;
+    padding:34px 26px 30px;
+    box-shadow:
+      0 0 0 6px rgba(212,175,55,0.15),
+      0 0 40px rgba(0,0,0,0.6),
+      inset 0 0 30px rgba(212,175,55,0.12);
+  }
+  .lux-panel::before {
+    content:'';
+    position:absolute; inset:9px;
+    border:1.5px solid rgba(212,175,55,0.55);
+    border-radius:12px;
+    pointer-events:none;
+  }
+  .lux-corner { position:absolute; width:34px; height:34px; }
+  .lux-corner::before, .lux-corner::after {
+    content:''; position:absolute; background:#d4af37;
+  }
+  .lux-corner::before { width:100%; height:3px; top:0; }
+  .lux-corner::after { width:3px; height:100%; left:0; }
+  .lux-corner.tl { top:6px; left:6px; }
+  .lux-corner.tr { top:6px; right:6px; transform:scaleX(-1); }
+  .lux-corner.bl { bottom:6px; left:6px; transform:scaleY(-1); }
+  .lux-corner.br { bottom:6px; right:6px; transform:scale(-1,-1); }
+
+  .lux-panel h1 {
+    position:relative; overflow:hidden;
+    background: linear-gradient(100deg, #b8860b 0%, #fff6cf 20%, #ffd54f 40%, #b8860b 60%, #fff6cf 80%, #ffd54f 100%);
+    background-size:250% auto;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:none;
+    filter:drop-shadow(2px 2px 0 #3a1e00) drop-shadow(0 0 16px rgba(255,213,79,0.5));
+    animation: shineSweep 3.5s linear infinite;
+  }
+  @keyframes shineSweep { 0%{ background-position:0% center; } 100%{ background-position:-250% center; } }
+
+  .lux-divider { width:70%; margin:6px auto 16px; height:2px; position:relative;
+    background:linear-gradient(90deg, transparent, #d4af37, transparent); }
+  .lux-divider::before { content:'✦'; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); color:#ffd54f; font-size:16px; background:#0b1733; padding:0 8px; }
+
+  .lux-btn {
+    position:relative; overflow:hidden;
+    background:linear-gradient(180deg, #ffe082, #ffb300 55%, #e08600);
+    border:2px solid #a86a00;
+    color:#3a2400;
+    text-shadow:0 1px 0 rgba(255,255,255,0.4);
+    box-shadow:0 4px 0 #8a5500, 0 6px 14px rgba(0,0,0,0.5);
+  }
+  .lux-btn::after {
+    content:''; position:absolute; top:0; left:-60%; width:40%; height:100%;
+    background:linear-gradient(120deg, transparent, rgba(255,255,255,0.65), transparent);
+    animation: btnShine 2.6s ease-in-out infinite;
+  }
+  @keyframes btnShine { 0%{ left:-60%; } 60%{ left:130%; } 100%{ left:130%; } }
+  .lux-btn:active { transform:translateY(3px); box-shadow:0 1px 0 #8a5500, 0 3px 8px rgba(0,0,0,0.5); }
   .screen p { font-size:15px; margin-bottom:8px; line-height:1.7; color:#e0e0e0; }
   .btn { margin-top:18px; padding:14px 34px; font-size:17px; font-weight:bold; border:none; border-radius:8px; background:#ffb300; color:#333; }
   .btn:active { background:#ff9800; }
@@ -109,9 +188,16 @@
   </div>
 
   <div class="screen" id="startScreen">
-    <h1>関根商店<br>神経衰弱</h1>
-    <p>社員さん30人のカードで神経衰弱!<br>ランダムに8人ずつ登場、全ステージクリアを目指そう。</p>
-    <button class="btn" id="startBtn">▶ スタート</button>
+    <div class="lux-panel">
+      <div class="lux-corner tl"></div>
+      <div class="lux-corner tr"></div>
+      <div class="lux-corner bl"></div>
+      <div class="lux-corner br"></div>
+      <h1>関根商店<br>神経衰弱</h1>
+      <div class="lux-divider"></div>
+      <p>社員さん30人のカードで神経衰弱!<br>ランダムに8人ずつ登場、全ステージクリアを目指そう。</p>
+      <button class="btn lux-btn" id="startBtn">▶ スタート</button>
+    </div>
   </div>
 
   <div class="screen hidden" id="clearScreen">
@@ -373,8 +459,8 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
 
   function spawnSparkleBurst(x, y){
     const layer = document.getElementById('confettiLayer');
-    const colors = ['#fff59d','#ffd54f','#ff8a65','#fff'];
-    for(let i=0;i<18;i++){
+    const colors = ['#fff59d','#ffd54f','#d4af37','#fff6cf','#fff'];
+    for(let i=0;i<26;i++){
       const s = document.createElement('div');
       s.className = 'sparkle-burst';
       const angle = (Math.PI*2/18)*i + Math.random()*0.3;
@@ -408,6 +494,14 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     spawnSparkleBurst(rectB.left+rectB.width/2, rectB.top+rectB.height/2);
 
     const layer = document.getElementById('luckyLayer');
+
+    const rays = document.createElement('div');
+    rays.className = 'lucky-rays';
+    rays.style.left = cx+'px';
+    rays.style.top = cy+'px';
+    layer.appendChild(rays);
+    setTimeout(()=>{ if(rays.parentNode) rays.parentNode.removeChild(rays); }, 1150);
+
     const word = LUCKY_WORDS[Math.floor(Math.random()*LUCKY_WORDS.length)];
     const el = document.createElement('div');
     el.className = 'lucky-text';
@@ -422,8 +516,8 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
   function spawnConfetti(){
     const layer = document.getElementById('confettiLayer');
     layer.innerHTML = '';
-    const colors = ['#ffd54f','#ff7043','#4fc3f7','#81c784','#f06292','#fff176'];
-    for(let i=0;i<60;i++){
+    const colors = ['#ffd54f','#fff6cf','#d4af37','#ffb300','#fff','#e0c060'];
+    for(let i=0;i<80;i++){
       const p = document.createElement('div');
       p.className = 'confetti-piece';
       const size = 6 + Math.random()*8;
