@@ -80,6 +80,18 @@
     transition: opacity 0.3s ease, transform 0.3s ease; white-space:nowrap;
   }
   #choicePrompt.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  #targetPreview {
+    position:fixed; top:88px; left:50%; transform:translateX(-50%) translateY(-10px) scale(0.9);
+    z-index:24; opacity:0; pointer-events:none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    display:flex; flex-direction:column; align-items:center;
+    background:rgba(13,27,61,0.9); border:3px solid #ffd54f; border-radius:14px;
+    padding:8px 12px; box-shadow:0 0 20px rgba(255,213,79,0.6), 0 6px 16px rgba(0,0,0,0.5);
+  }
+  #targetPreview.show { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+  #targetPreview .target-label { color:#ffd54f; font-weight:900; font-size:12px; margin-bottom:6px; white-space:nowrap; }
+  #targetPreview .target-img { width:64px; height:80px; object-fit:cover; border-radius:8px; border:2px solid #ffd54f; }
   .cardSlot.matched { animation: matchPop 0.5s ease; z-index:2; }
   .cardSlot.gone { transition: opacity 0.6s ease, transform 0.6s ease; opacity:0; transform:scale(0.7); pointer-events:none; }
   @keyframes matchPop {
@@ -991,6 +1003,22 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     }, 450);
   }
 
+  function showTargetPreview(key){
+    let wrap = document.getElementById('targetPreview');
+    if(!wrap){
+      wrap = document.createElement('div');
+      wrap.id = 'targetPreview';
+      wrap.innerHTML = '<div class="target-label">この絵柄が当たり!</div><img class="target-img">';
+      document.getElementById('app').appendChild(wrap);
+    }
+    wrap.querySelector('.target-img').src = b64src(key);
+    wrap.classList.add('show');
+  }
+  function hideTargetPreview(){
+    const wrap = document.getElementById('targetPreview');
+    if(wrap) wrap.classList.remove('show');
+  }
+
   function showChoicePrompt(text){
     let el = document.getElementById('choicePrompt');
     if(!el){
@@ -1097,12 +1125,14 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
 
     options.forEach(s=> s.classList.add('choice-glow'));
     showChoicePrompt(promptText);
+    showTargetPreview(winner.dataset.key);
 
     shachoChoiceActive = {
       options,
       onPick: function(chosen){
         options.forEach(s=> s.classList.remove('choice-glow'));
         hideChoicePrompt();
+        hideTargetPreview();
 
         if(chosen === winner){
           const twin = Array.from(boardEl.querySelectorAll('.cardSlot')).find(s=>
