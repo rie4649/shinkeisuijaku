@@ -32,6 +32,35 @@
   .cardBack { }
   .cardFront { transform:rotateY(180deg); }
   .cardSlot.matched .cardInner { opacity:0.7; }
+
+  .cardSlot.spin-effect { animation: slotSpin 0.9s ease-in-out; z-index:3; }
+  @keyframes slotSpin {
+    0% { transform:rotate(0deg) scale(1); }
+    50% { transform:rotate(360deg) scale(1.18); }
+    100% { transform:rotate(720deg) scale(1); }
+  }
+
+  .cardSlot.shuffle-wiggle { animation: wiggle 0.45s ease-in-out; }
+  @keyframes wiggle {
+    0%,100% { transform:translateX(0) rotate(0deg); }
+    25% { transform:translateX(-6px) rotate(-4deg); }
+    75% { transform:translateX(6px) rotate(4deg); }
+  }
+
+  .cardSlot.choice-glow { animation: choicePulse 0.9s ease-in-out infinite; z-index:4; }
+  @keyframes choicePulse {
+    0%,100% { box-shadow:0 0 0 0 rgba(255,213,79,0.9); filter:brightness(1); }
+    50% { box-shadow:0 0 0 10px rgba(255,213,79,0); filter:brightness(1.25); }
+  }
+
+  #choicePrompt {
+    position:fixed; top:44px; left:50%; transform:translateX(-50%) translateY(-20px);
+    background:linear-gradient(180deg,#ffe082,#ffb300); color:#3a2400; font-weight:bold;
+    font-size:13px; padding:8px 16px; border-radius:20px; border:2px solid #a86a00;
+    box-shadow:0 4px 14px rgba(0,0,0,0.5); z-index:23; opacity:0; pointer-events:none;
+    transition: opacity 0.3s ease, transform 0.3s ease; white-space:nowrap;
+  }
+  #choicePrompt.show { opacity:1; transform:translateX(-50%) translateY(0); }
   .cardSlot.matched { animation: matchPop 0.5s ease; z-index:2; }
   .cardSlot.gone { transition: opacity 0.6s ease, transform 0.6s ease; opacity:0; transform:scale(0.7); pointer-events:none; }
   @keyframes matchPop {
@@ -130,6 +159,21 @@
   @keyframes dangerPulse { 0%,100%{ opacity:0; } 50%{ opacity:0.55; } }
   #darkFade { position:fixed; inset:0; background:#000; opacity:0; pointer-events:none; z-index:17; transition:opacity 0.8s ease; }
   #darkFade.on { opacity:0.55; }
+
+  .joker-card-big {
+    position:fixed; left:50%; top:52%; width:52vw; max-width:320px;
+    transform:translate(-50%,-50%) scale(0.1) rotate(0deg);
+    z-index:23; border-radius:8%;
+    box-shadow:0 0 40px rgba(255,23,68,0.85), 0 0 90px rgba(255,23,68,0.5), 0 10px 30px rgba(0,0,0,0.7);
+    animation: jokerCardIn 1.6s cubic-bezier(.2,1.7,.3,1) forwards;
+  }
+  @keyframes jokerCardIn {
+    0% { transform:translate(-50%,-50%) scale(0.05) rotate(0deg); opacity:0; }
+    35% { transform:translate(-50%,-50%) scale(1.15) rotate(540deg); opacity:1; }
+    55% { transform:translate(-50%,-50%) scale(0.95) rotate(700deg); opacity:1; }
+    75% { transform:translate(-50%,-50%) scale(1.05) rotate(720deg); opacity:1; }
+    100% { transform:translate(-50%,-50%) scale(1) rotate(720deg); opacity:1; }
+  }
 
   /* ---------- 画面オーバーレイ ---------- */
   .screen { position:absolute; inset:0; background:rgba(10,14,30,0.92); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; z-index:10; padding:24px; }
@@ -387,25 +431,47 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       locked = true;
       const [a,b] = flippedSlots;
       if(a.dataset.key === b.dataset.key){
+        const key = a.dataset.key;
         setTimeout(()=>{
           a.dataset.matched = 'true'; b.dataset.matched = 'true';
           a.classList.add('matched'); b.classList.add('matched');
           matchedCount++;
-          if(a.dataset.key === 'card_shacho'){
+
+          if(key === 'card_shacho'){
             score += 60;
             if(missCount > 0) missCount--;
             updateTopbar();
             celebrateLuckyChance(a, b);
+            setTimeout(()=>{ a.classList.add('gone'); b.classList.add('gone'); }, 700);
+            flippedSlots = [];
+            setTimeout(startShachoBonus, 900);
+          } else if(key === 'card_joumu'){
+            score += 10;
+            updateTopbar();
+            celebrateMatch(a, b);
+            spinCards([a,b]);
+            setTimeout(()=>{ a.classList.add('gone'); b.classList.add('gone'); }, 700);
+            flippedSlots = [];
+            locked = false;
+            checkStageClear();
+          } else if(key === 'card_sengoku'){
+            score += 10;
+            updateTopbar();
+            celebrateMatch(a, b);
+            spinCards([a,b]);
+            shuffleRemainingCards();
+            setTimeout(()=>{ a.classList.add('gone'); b.classList.add('gone'); }, 700);
+            flippedSlots = [];
+            locked = false;
+            checkStageClear();
           } else {
             score += 10;
             updateTopbar();
             celebrateMatch(a, b);
-          }
-          setTimeout(()=>{ a.classList.add('gone'); b.classList.add('gone'); }, 700);
-          flippedSlots = [];
-          locked = false;
-          if(matchedCount >= stageTotal){
-            setTimeout(onStageCleared, 900);
+            setTimeout(()=>{ a.classList.add('gone'); b.classList.add('gone'); }, 700);
+            flippedSlots = [];
+            locked = false;
+            checkStageClear();
           }
         }, 500);
       } else {
@@ -486,6 +552,12 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     darkFade.classList.add('on');
 
     const layer = document.getElementById('luckyLayer');
+
+    const cardImg = document.createElement('img');
+    cardImg.className = 'joker-card-big';
+    cardImg.src = b64src('joker_card');
+    layer.appendChild(cardImg);
+
     const el = document.createElement('div');
     el.className = 'joker-text';
     el.textContent = '残念!!!!!!';
@@ -495,6 +567,7 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     setTimeout(()=>{ dangerFlash.classList.remove('pulse'); }, 1600);
     setTimeout(()=>{
       if(el.parentNode) el.parentNode.removeChild(el);
+      if(cardImg.parentNode) cardImg.parentNode.removeChild(cardImg);
       darkFade.classList.remove('on');
       document.getElementById('gameOverTitle').textContent = '😱💥 ジョーカー!!';
       document.getElementById('gameOverReason').textContent = 'まさかのジョーカーで即ゲームオーバー…';
@@ -647,6 +720,99 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       layer.appendChild(p);
       setTimeout(()=>{ if(p.parentNode) p.parentNode.removeChild(p); }, (duration+delay)*1000+200);
     }
+  }
+
+  function checkStageClear(){
+    if(matchedCount >= stageTotal){
+      setTimeout(onStageCleared, 900);
+    }
+  }
+
+  function spinCards(slots){
+    slots.forEach(s=>{
+      s.classList.add('spin-effect');
+      setTimeout(()=>{ s.classList.remove('spin-effect'); }, 900);
+    });
+  }
+
+  function shuffleRemainingCards(){
+    const remaining = Array.from(boardEl.querySelectorAll('.cardSlot')).filter(s=>
+      !s.classList.contains('flipped') && s.dataset.matched !== 'true' && !s.classList.contains('gone')
+    );
+    if(remaining.length < 2) return;
+    const keys = remaining.map(s=>s.dataset.key);
+    const shuffledKeys = shuffle(keys);
+    remaining.forEach(s=> s.classList.add('shuffle-wiggle'));
+    setTimeout(()=>{
+      remaining.forEach((s,i)=>{
+        s.dataset.key = shuffledKeys[i];
+        const img = s.querySelector('.cardFront img');
+        if(img) img.src = b64src(shuffledKeys[i]);
+        s.classList.remove('shuffle-wiggle');
+      });
+    }, 450);
+  }
+
+  function showChoicePrompt(){
+    let el = document.getElementById('choicePrompt');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'choicePrompt';
+      el.textContent = '✨ 社長のラッキーチャンス!どちらか1枚選んでね ✨';
+      document.getElementById('app').appendChild(el);
+    }
+    el.classList.add('show');
+  }
+  function hideChoicePrompt(){
+    const el = document.getElementById('choicePrompt');
+    if(el) el.classList.remove('show');
+  }
+
+  function startShachoBonus(){
+    const candidates = Array.from(boardEl.querySelectorAll('.cardSlot')).filter(s=>
+      !s.classList.contains('flipped') && s.dataset.matched !== 'true' && !s.classList.contains('gone')
+    );
+    if(candidates.length < 2){ locked = false; checkStageClear(); return; }
+
+    const shuffled = shuffle(candidates);
+    const optionA = shuffled[0];
+    const optionB = shuffled[1];
+    optionA.classList.add('choice-glow');
+    optionB.classList.add('choice-glow');
+    showChoicePrompt();
+
+    function pick(chosen){
+      optionA.classList.remove('choice-glow');
+      optionB.classList.remove('choice-glow');
+      hideChoicePrompt();
+      optionA.removeEventListener('click', handlerA);
+      optionB.removeEventListener('click', handlerB);
+
+      const twin = Array.from(boardEl.querySelectorAll('.cardSlot')).find(s=>
+        s!==chosen && s.dataset.key===chosen.dataset.key && s.dataset.matched!=='true' && !s.classList.contains('gone')
+      );
+      if(twin){
+        chosen.classList.add('flipped'); twin.classList.add('flipped');
+        setTimeout(()=>{
+          chosen.dataset.matched='true'; twin.dataset.matched='true';
+          chosen.classList.add('matched'); twin.classList.add('matched');
+          matchedCount++;
+          score += 20;
+          updateTopbar();
+          celebrateMatch(chosen, twin);
+          setTimeout(()=>{ chosen.classList.add('gone'); twin.classList.add('gone'); }, 700);
+          locked = false;
+          checkStageClear();
+        }, 500);
+      } else {
+        locked = false;
+        checkStageClear();
+      }
+    }
+    function handlerA(e){ e.stopPropagation(); pick(optionA); }
+    function handlerB(e){ e.stopPropagation(); pick(optionB); }
+    optionA.addEventListener('click', handlerA);
+    optionB.addEventListener('click', handlerB);
   }
 
   function onStageCleared(){
