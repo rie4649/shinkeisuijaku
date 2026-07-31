@@ -441,7 +441,7 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
 
   function onCardClick(slot){
     if(shachoChoiceActive){
-      if(slot === shachoChoiceActive.optionA || slot === shachoChoiceActive.optionB){
+      if(shachoChoiceActive.options.includes(slot)){
         const chosen = slot;
         const cb = shachoChoiceActive.onPick;
         shachoChoiceActive = null;
@@ -535,7 +535,12 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       updateTopbar();
       celebrateLuckyChance(pairForFx[0], pairForFx[1]);
       cleanupGone();
-      setTimeout(startShachoBonus, 900);
+      setTimeout(()=>{
+        startCardChoiceBonus(2, {
+          promptText: '✨ 社長のラッキーチャンス!どちらか1枚選んでね ✨',
+          pickScore: 20
+        });
+      }, 900);
     } else if(key === 'card_joumu'){
       finishMatch();
       score += 10;
@@ -543,9 +548,13 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       celebrateMatch(pairForFx[0], pairForFx[1]);
       spinCards(twin ? [slot,twin] : [slot]);
       announceSpecial('常務パワー!!回転タイム!!');
-      cleanupGone();
-      locked = false;
-      checkStageClear();
+      setTimeout(()=>{ slot.classList.add('gone'); if(twin) twin.classList.add('gone'); }, 950);
+      setTimeout(()=>{
+        startCardChoiceBonus(4, {
+          promptText: '常務パワー!4枚から1枚選んでね!',
+          pickScore: 20
+        });
+      }, 1050);
     } else if(key === 'card_sengoku'){
       finishMatch();
       score += 10;
@@ -554,9 +563,13 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       spinCards(twin ? [slot,twin] : [slot]);
       shuffleRemainingCards();
       announceSpecial('仙石シャッフル!!かき混ぜます!!');
-      cleanupGone();
-      locked = false;
-      checkStageClear();
+      setTimeout(()=>{ slot.classList.add('gone'); if(twin) twin.classList.add('gone'); }, 950);
+      setTimeout(()=>{
+        startCardChoiceBonus(8, {
+          promptText: '仙石シャッフル!8枚から1枚選んでね!',
+          pickScore: 20
+        });
+      }, 1150);
     } else if(key === 'card_junko'){
       finishMatch();
       score += 10;
@@ -661,7 +674,7 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       if(cardImg.parentNode) cardImg.parentNode.removeChild(cardImg);
       darkFade.classList.remove('on');
       document.getElementById('gameOverTitle').textContent = '😱💥 ジョーカー!!';
-      document.getElementById('gameOverReason').textContent = 'まさかのジョーカーで即ゲームオーバー…';
+      document.getElementById('gameOverReason').textContent = 'まさかのジョーカー…KAWAMURA地獄へようこそ…';
       document.getElementById('gameOverInfo').textContent = 'スコア: '+score+' / めくった回数: '+moves;
       showScreen('gameOverScreen');
     }, 2050);
@@ -844,14 +857,14 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     }, 450);
   }
 
-  function showChoicePrompt(){
+  function showChoicePrompt(text){
     let el = document.getElementById('choicePrompt');
     if(!el){
       el = document.createElement('div');
       el.id = 'choicePrompt';
-      el.textContent = '✨ 社長のラッキーチャンス!どちらか1枚選んでね ✨';
       document.getElementById('app').appendChild(el);
     }
+    el.textContent = text;
     el.classList.add('show');
     document.getElementById('boardDim').classList.add('on');
   }
@@ -861,24 +874,27 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     document.getElementById('boardDim').classList.remove('on');
   }
 
-  function startShachoBonus(){
+  // n枚の裏向きカードから1枚選ばせて自動でペアを揃えるボーナス演出
+  function startCardChoiceBonus(n, opts){
+    opts = opts || {};
+    const promptText = opts.promptText || (n+'枚から1枚選んでね!');
+    const pickScore = opts.pickScore !== undefined ? opts.pickScore : 20;
+    const onComplete = opts.onComplete || function(){ locked = false; checkStageClear(); };
+
     const candidates = Array.from(boardEl.querySelectorAll('.cardSlot')).filter(s=>
       !s.classList.contains('flipped') && s.dataset.matched !== 'true' && !s.classList.contains('gone')
     );
-    if(candidates.length < 2){ locked = false; checkStageClear(); return; }
+    if(candidates.length < 2){ onComplete(); return; }
 
-    const shuffled = shuffle(candidates);
-    const optionA = shuffled[0];
-    const optionB = shuffled[1];
-    optionA.classList.add('choice-glow');
-    optionB.classList.add('choice-glow');
-    showChoicePrompt();
+    const count = Math.min(n, candidates.length);
+    const options = shuffle(candidates).slice(0, count);
+    options.forEach(s=> s.classList.add('choice-glow'));
+    showChoicePrompt(promptText);
 
     shachoChoiceActive = {
-      optionA, optionB,
+      options,
       onPick: function(chosen){
-        optionA.classList.remove('choice-glow');
-        optionB.classList.remove('choice-glow');
+        options.forEach(s=> s.classList.remove('choice-glow'));
         hideChoicePrompt();
 
         const twin = Array.from(boardEl.querySelectorAll('.cardSlot')).find(s=>
@@ -890,16 +906,14 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
             chosen.dataset.matched='true'; twin.dataset.matched='true';
             chosen.classList.add('matched'); twin.classList.add('matched');
             matchedCount++;
-            score += 20;
+            score += pickScore;
             updateTopbar();
             celebrateMatch(chosen, twin);
             setTimeout(()=>{ chosen.classList.add('gone'); twin.classList.add('gone'); }, 700);
-            locked = false;
-            checkStageClear();
+            setTimeout(onComplete, 750);
           }, 500);
         } else {
-          locked = false;
-          checkStageClear();
+          onComplete();
         }
       }
     };
@@ -932,18 +946,14 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     let msg = 'あなた:'+HAND_EMOJI[hand]+'　純子:'+HAND_EMOJI[cpu]+'<br>';
 
     if(result === 'win'){
-      score += 30;
-      if(missCount > 0) missCount--;
-      msg += '🎉 かち!! スコア+30 ハート回復!';
+      msg += '🎉 かち!! ラッキーの2択が出るよ!';
       playLuckyFanfare();
     } else if(result === 'lose'){
-      missCount++;
-      msg += '😭 まけ…ハートが1つ減った';
+      msg += '😭 まけ…まさかのゲームオーバー…';
       playSadSound();
     } else {
       msg += 'あいこ!もう一回!';
     }
-    updateTopbar();
     resultEl.innerHTML = msg;
 
     if(result === 'draw'){
@@ -954,15 +964,29 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       return;
     }
 
-    setTimeout(()=>{
-      document.getElementById('jankenScreen').classList.add('hidden');
-      if(missCount >= MAX_MISSES){
-        onMissLimitReached();
-      } else {
-        locked = false;
-        checkStageClear();
-      }
-    }, 1700);
+    if(result === 'win'){
+      setTimeout(()=>{
+        document.getElementById('jankenScreen').classList.add('hidden');
+        startCardChoiceBonus(2, {
+          promptText: '✨ じゃんけん勝利!ラッキーの2択! ✨',
+          pickScore: 20
+        });
+      }, 1500);
+    } else {
+      setTimeout(()=>{
+        document.getElementById('jankenScreen').classList.add('hidden');
+        onJankenLose();
+      }, 1500);
+    }
+  }
+
+  function onJankenLose(){
+    showSadOverlay('負け…!!', ()=>{
+      document.getElementById('gameOverTitle').textContent = '😭 じゃんけん負け…';
+      document.getElementById('gameOverReason').textContent = '純子とのじゃんけんに負けてしまった…';
+      document.getElementById('gameOverInfo').textContent = 'スコア: '+score+' / めくった回数: '+moves;
+      showScreen('gameOverScreen');
+    });
   }
 
   document.querySelectorAll('.janken-btn').forEach(btn=>{
