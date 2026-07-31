@@ -1124,7 +1124,10 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
             locked = false; checkStageClear();
           }
         } else {
-          onGambleGameOver(missReason);
+          chosen.classList.add('flipped');
+          showBigCardReveal(chosen.dataset.key, ()=>{
+            onGambleGameOver(missReason);
+          });
         }
       }
     };
