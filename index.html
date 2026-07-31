@@ -151,11 +151,17 @@
   .joker-text {
     position:absolute; left:50%; top:42%; transform:translate(-50%,-50%);
     font-family:'Courier New',monospace; font-weight:900;
-    font-size:17vw; color:#ff1744;
-    -webkit-text-stroke:4px #1a0000;
-    text-shadow:0 0 40px rgba(255,23,68,0.9), 0 0 80px rgba(255,23,68,0.6);
+    font-size:19vw; color:#ff1744;
+    -webkit-text-stroke:5px #1a0000;
+    text-shadow:0 0 50px rgba(255,23,68,0.95), 0 0 100px rgba(255,23,68,0.7);
     white-space:nowrap; z-index:22;
     animation: jokerTextPop 1.4s cubic-bezier(.2,1.6,.3,1) forwards;
+  }
+  .joker-text.hell-text {
+    font-size:13vw; color:#e040fb;
+    -webkit-text-stroke:4px #240046;
+    text-shadow:0 0 50px rgba(224,64,251,0.95), 0 0 100px rgba(157,0,255,0.8);
+    animation: jokerTextPop 1.5s cubic-bezier(.2,1.6,.3,1) forwards;
   }
   @keyframes jokerTextPop {
     0% { transform:translate(-50%,-50%) scale(0.1) rotate(-25deg); opacity:0; }
@@ -326,8 +332,8 @@
   </div>
 
   <div class="screen hidden" id="gameOverScreen" style="background:rgba(20,10,10,0.94);">
-    <h1 id="gameOverTitle" style="color:#ff8a80; text-shadow:2px 2px 0 #4a0000, 0 0 18px rgba(255,138,128,0.6);">😭 残念!!!!!!</h1>
-    <p id="gameOverReason">ジョーカーを引いてしまった…</p>
+    <h1 id="gameOverTitle" style="font-size:34px; color:#ff8a80; text-shadow:3px 3px 0 #4a0000, 0 0 26px rgba(255,138,128,0.8);">😭 残念!!!!!!</h1>
+    <p id="gameOverReason" style="font-size:18px; font-weight:bold; color:#ff8a80;"></p>
     <p id="gameOverInfo"></p>
     <button class="btn" id="retryJokerBtn">もういちど</button>
   </div>
@@ -1070,6 +1076,7 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
   function onGambleGameOver(reasonText){
     playDoomSound();
     setTimeout(playDoomSound, 500);
+    setTimeout(playDoomSound, 1900);
     const appEl = document.getElementById('app');
     const dangerFlash = document.getElementById('dangerFlash');
     const darkFade = document.getElementById('darkFade');
@@ -1089,18 +1096,29 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     layer.appendChild(cardImg);
 
     setTimeout(()=>{ appEl.classList.remove('joker-shake'); void appEl.offsetWidth; appEl.classList.add('joker-shake'); }, 1000);
-    setTimeout(()=>{ appEl.classList.remove('joker-shake'); }, 2600);
+    setTimeout(()=>{ appEl.classList.remove('joker-shake'); void appEl.offsetWidth; appEl.classList.add('joker-shake'); }, 2400);
+    setTimeout(()=>{ appEl.classList.remove('joker-shake'); }, 3900);
     setTimeout(()=>{ dangerFlash.classList.remove('pulse'); void dangerFlash.offsetWidth; dangerFlash.classList.add('pulse'); }, 900);
-    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); }, 2400);
+    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); void dangerFlash.offsetWidth; dangerFlash.classList.add('pulse'); }, 2300);
+    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); }, 3800);
+
     setTimeout(()=>{
       if(bigText.parentNode) bigText.parentNode.removeChild(bigText);
+      const hellText = document.createElement('div');
+      hellText.className = 'joker-text hell-text';
+      hellText.textContent = 'KAWAMURA地獄へ…';
+      layer.appendChild(hellText);
+      setTimeout(()=>{ if(hellText.parentNode) hellText.parentNode.removeChild(hellText); }, 1500);
+    }, 1450);
+
+    setTimeout(()=>{
       if(cardImg.parentNode) cardImg.parentNode.removeChild(cardImg);
       darkFade.classList.remove('on');
       document.getElementById('gameOverTitle').textContent = '💥😭 大ハズレ!! 😭💥';
       document.getElementById('gameOverReason').textContent = reasonText + '…KAWAMURA地獄へようこそ…';
       document.getElementById('gameOverInfo').textContent = 'スコア: '+score+' / めくった回数: '+moves;
       showScreen('gameOverScreen');
-    }, 2900);
+    }, 3150);
   }
 
   function startGambleChoice(n, opts){
