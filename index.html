@@ -135,18 +135,13 @@
     50% { transform:translate(-50%,-30%) scale(1.05) rotate(4deg); opacity:1; filter:grayscale(0.6); }
     100% { transform:translate(-50%,40%) scale(0.85) rotate(8deg); opacity:0; filter:grayscale(1); }
   }
-  .joker-shake { animation: jokerShake 0.6s cubic-bezier(.36,.07,.19,.97) 3; }
+  .joker-shake { animation: jokerShake 0.5s cubic-bezier(.36,.07,.19,.97) 1; }
   @keyframes jokerShake {
     0%,100% { transform:translate(0,0); }
-    10% { transform:translate(-10px,-4px) rotate(-1.5deg); }
-    20% { transform:translate(12px,3px) rotate(1.5deg); }
-    30% { transform:translate(-14px,2px) rotate(-2deg); }
-    40% { transform:translate(14px,-3px) rotate(2deg); }
-    50% { transform:translate(-10px,4px) rotate(-1deg); }
-    60% { transform:translate(10px,-2px) rotate(1deg); }
-    70% { transform:translate(-8px,2px) rotate(-1deg); }
-    80% { transform:translate(8px,-2px) rotate(1deg); }
-    90% { transform:translate(-4px,1px) rotate(0deg); }
+    20% { transform:translate(-3px,-2px); }
+    40% { transform:translate(3px,1px); }
+    60% { transform:translate(-2px,2px); }
+    80% { transform:translate(2px,-1px); }
   }
   .joker-text {
     position:absolute; left:50%; top:42%; transform:translate(-50%,-50%);
@@ -288,7 +283,7 @@
   .lux-btn:active { transform:translateY(3px); box-shadow:0 1px 0 #8a5500, 0 3px 8px rgba(0,0,0,0.5); }
   .screen p { font-size:15px; margin-bottom:8px; line-height:1.7; color:#e0e0e0; }
   .btn { margin-top:18px; padding:14px 34px; font-size:17px; font-weight:bold; border:none; border-radius:8px; background:#ffb300; color:#333; }
-  .janken-btn { margin-top:0; padding:6px; border-radius:16px; width:120px; height:150px; display:flex; align-items:center; justify-content:center; border:4px solid #a86a00; box-shadow:0 6px 0 #8a5500, 0 10px 20px rgba(0,0,0,0.5); background:#0d1b3d; overflow:hidden; }
+  .janken-btn { margin-top:0; padding:6px; border-radius:16px; width:28vw; max-width:150px; height:35vw; max-height:190px; display:flex; align-items:center; justify-content:center; border:4px solid #a86a00; box-shadow:0 6px 0 #8a5500, 0 10px 20px rgba(0,0,0,0.5); background:#0d1b3d; overflow:hidden; }
   .hand-img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
   .janken-btn:active { transform:translateY(4px); box-shadow:0 2px 0 #8a5500, 0 4px 10px rgba(0,0,0,0.5); }
   .janken-btn.disabled { opacity:0.4; pointer-events:none; }
@@ -349,8 +344,8 @@
   <div id="luckyLayer"></div>
 
   <div class="screen hidden" id="jankenScreen" style="background:rgba(10,14,30,0.94); z-index:25;">
-    <h1 style="font-size:38px;">⚔️ いざ勝負!! ⚔️</h1>
-    <p style="font-size:16px;">純子とガチじゃんけん!勝てばラッキーの2択、負けたら即ゲームオーバー!!</p>
+    <h1 style="font-size:38px;">🎮 じゃんけんタイム 🎮</h1>
+    <p style="font-size:16px;">勝てばラッキーの2択、負けたら即ゲームオーバー!!</p>
     <div id="jankenHands" style="display:flex; gap:14px; margin-top:16px;">
       <button class="btn janken-btn" data-hand="rock"><img class="hand-img" data-key="janken_gu" alt="グー"></button>
       <button class="btn janken-btn" data-hand="scissors"><img class="hand-img" data-key="janken_choki" alt="チョキ"></button>
@@ -366,7 +361,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
 
 (function(){
   const EMP_KEYS = Object.keys(ASSETS).filter(k => k !== 'card_back');
-  const GROUP_SIZES = [4,4,4,4,4,4,4,2];
+  const GROUP_SIZES = [4,5,6];
 
   function b64src(key){ return 'data:image/webp;base64,' + ASSETS[key]; }
 
@@ -468,7 +463,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     hideAllScreens();
   }
 
-  const RANDOM_SPECIAL_CHANCE = 0.3;
+  const RANDOM_SPECIAL_CHANCE = 0.12;
 
   function onCardClick(slot){
     if(shachoChoiceActive){
@@ -628,7 +623,13 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
         lightningEffect();
         announceSpecial('稲妻直撃!!⚡⚡⚡');
         cleanupGone();
-        setTimeout(startIshiharaGamble, 1050);
+        setTimeout(()=>{
+          startGambleChoice(16, {
+            promptText: '⚡ 16枚から1枚選んでね!(はずれたらゲームオーバー) ⚡',
+            winScore: 70,
+            missReason: '稲妻チャンスの勝負に負けてしまった…'
+          });
+        }, 1050);
       },
       function hastyEffect(){
         finishMatch();
@@ -849,7 +850,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
       if(cardImg.parentNode) cardImg.parentNode.removeChild(cardImg);
       darkFade.classList.remove('on');
       document.getElementById('gameOverTitle').textContent = '😱💥 ジョーカー!!';
-      document.getElementById('gameOverReason').textContent = 'まさかのジョーカー…KAWAMURA地獄へようこそ…';
+      document.getElementById('gameOverReason').textContent = 'まさかのジョーカーを引いてしまった…';
       document.getElementById('gameOverInfo').textContent = 'スコア: '+score+' / めくった回数: '+moves;
       showScreen('gameOverScreen');
     }, 2050);
@@ -954,7 +955,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
 
     const el = document.createElement('div');
     el.className = 'lucky-text';
-    el.textContent = '社長!! ラッキーチャンス!!';
+    el.textContent = '✨ ラッキーチャンス!! ✨';
     el.style.fontSize = '9vw';
     el.style.left = cx+'px';
     el.style.top = cy+'px';
@@ -1107,32 +1108,22 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     bigText.textContent = '大ハズレ!!!';
     layer.appendChild(bigText);
 
-    const cardImg = document.createElement('img');
-    cardImg.className = 'joker-card-big';
-    cardImg.src = b64src('joker_card');
-    layer.appendChild(cardImg);
-
-    setTimeout(()=>{ appEl.classList.remove('joker-shake'); void appEl.offsetWidth; appEl.classList.add('joker-shake'); }, 1000);
-    setTimeout(()=>{ appEl.classList.remove('joker-shake'); void appEl.offsetWidth; appEl.classList.add('joker-shake'); }, 2400);
-    setTimeout(()=>{ appEl.classList.remove('joker-shake'); }, 3900);
-    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); void dangerFlash.offsetWidth; dangerFlash.classList.add('pulse'); }, 900);
-    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); void dangerFlash.offsetWidth; dangerFlash.classList.add('pulse'); }, 2300);
-    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); }, 3800);
+    setTimeout(()=>{ appEl.classList.remove('joker-shake'); }, 700);
+    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); }, 700);
 
     setTimeout(()=>{
       if(bigText.parentNode) bigText.parentNode.removeChild(bigText);
-      const hellText = document.createElement('div');
-      hellText.className = 'joker-text hell-text';
-      hellText.textContent = 'KAWAMURA地獄へ…';
-      layer.appendChild(hellText);
-      setTimeout(()=>{ if(hellText.parentNode) hellText.parentNode.removeChild(hellText); }, 1500);
+      const overText = document.createElement('div');
+      overText.className = 'joker-text hell-text';
+      overText.textContent = 'ゲームオーバー…';
+      layer.appendChild(overText);
+      setTimeout(()=>{ if(overText.parentNode) overText.parentNode.removeChild(overText); }, 1500);
     }, 1450);
 
     setTimeout(()=>{
-      if(cardImg.parentNode) cardImg.parentNode.removeChild(cardImg);
       darkFade.classList.remove('on');
       document.getElementById('gameOverTitle').textContent = '💥😭 大ハズレ!! 😭💥';
-      document.getElementById('gameOverReason').textContent = reasonText + '…KAWAMURA地獄へようこそ…';
+      document.getElementById('gameOverReason').textContent = reasonText;
       document.getElementById('gameOverInfo').textContent = 'スコア: '+score+' / めくった回数: '+moves;
       showScreen('gameOverScreen');
     }, 3150);
@@ -1213,7 +1204,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     const cpu = hands[Math.floor(Math.random()*3)];
     const result = judgeJanken(hand, cpu);
     const resultEl = document.getElementById('jankenResult');
-    let msg = 'あなた:'+HAND_EMOJI[hand]+'　純子:'+HAND_EMOJI[cpu]+'<br>';
+    let msg = 'あなた:'+HAND_EMOJI[hand]+'　相手:'+HAND_EMOJI[cpu]+'<br>';
 
     if(result === 'win'){
       msg += '🎉 かち!! ラッキーの2択が出るよ!';
@@ -1251,7 +1242,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
   }
 
   function onJankenLose(){
-    onGambleGameOver('純子とのじゃんけんに負けてしまった…');
+    onGambleGameOver('じゃんけんに負けてしまった…');
   }
 
   document.querySelectorAll('.hand-img').forEach(img=>{
