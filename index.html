@@ -36,8 +36,16 @@
   .cardSlot.spin-effect { animation: slotSpin 0.9s ease-in-out; z-index:3; }
   @keyframes slotSpin {
     0% { transform:rotate(0deg) scale(1); }
-    50% { transform:rotate(360deg) scale(1.18); }
+    45% { transform:rotate(360deg) scale(2.1); }
+    60% { transform:rotate(540deg) scale(1.9); }
     100% { transform:rotate(720deg) scale(1); }
+  }
+  .cardSlot.spin-effect-big { animation: slotSpinBig 1.3s ease-in-out; z-index:3; }
+  @keyframes slotSpinBig {
+    0% { transform:rotate(0deg) scale(1); }
+    35% { transform:rotate(720deg) scale(2.3); }
+    55% { transform:rotate(1080deg) scale(2.0); }
+    100% { transform:rotate(1800deg) scale(1); }
   }
 
   .cardSlot.shuffle-wiggle { animation: wiggle 0.45s ease-in-out; }
@@ -579,7 +587,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
         celebrateMatch(pairForFx[0], pairForFx[1]);
         spinCards(twin ? [slot,twin] : [slot]);
         announceSpecial('スペシャルパワー!!回転タイム!!');
-        cleanupGone(950);
+        cleanupGone(1400);
         setTimeout(()=>{
           showBigCardReveal(key, ()=>{
             startGambleChoice(4, {
@@ -588,7 +596,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
               missReason: '回転パワーの勝負に負けてしまった…'
             });
           });
-        }, 1050);
+        }, 1500);
       },
       function shuffleEffect(){
         finishMatch();
@@ -598,14 +606,14 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
         spinCards(twin ? [slot,twin] : [slot]);
         shuffleRemainingCards();
         announceSpecial('シャッフルスペシャル!!かき混ぜます!!');
-        cleanupGone(950);
+        cleanupGone(1400);
         setTimeout(()=>{
           startGambleChoice(8, {
             promptText: 'シャッフルスペシャル!8枚から1枚選んでね!(はずれたらゲームオーバー)',
             winScore: 60,
             missReason: 'シャッフルスペシャルの勝負に負けてしまった…'
           });
-        }, 1150);
+        }, 1500);
       },
       function jankenEffect(){
         finishMatch();
@@ -614,22 +622,6 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
         celebrateMatch(pairForFx[0], pairForFx[1]);
         cleanupGone();
         setTimeout(startJankenBattle, 900);
-      },
-      function lightningEffectPool(){
-        finishMatch();
-        score += 10;
-        updateTopbar();
-        celebrateMatch(pairForFx[0], pairForFx[1]);
-        lightningEffect();
-        announceSpecial('稲妻直撃!!⚡⚡⚡');
-        cleanupGone();
-        setTimeout(()=>{
-          startGambleChoice(16, {
-            promptText: '⚡ 16枚から1枚選んでね!(はずれたらゲームオーバー) ⚡',
-            winScore: 70,
-            missReason: '稲妻チャンスの勝負に負けてしまった…'
-          });
-        }, 1050);
       },
       function hastyEffect(){
         finishMatch();
@@ -645,22 +637,6 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
             missReason: 'せっかち発動の勝負に負けてしまった…'
           });
         }, 900);
-      },
-      function festivalEffect(){
-        finishMatch();
-        score += 10;
-        updateTopbar();
-        celebrateMatch(pairForFx[0], pairForFx[1]);
-        playFestivalMusic();
-        announceSpecial('お祭り騒ぎ!!🎉🏮');
-        cleanupGone();
-        setTimeout(()=>{
-          startGambleChoice(30, {
-            promptText: '🏮 お祭りチャンス!30枚から1枚選んでね!(はずれたらゲームオーバー) 🏮',
-            winScore: 80,
-            missReason: 'お祭りチャンスの勝負に負けてしまった…'
-          });
-        }, 1400);
       }
     ];
 
@@ -788,6 +764,11 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     [660,880,1047,1319].forEach((f,i)=>beep(f, 0.22, 'square', 0.18, i*70));
   }
 
+  function playSimpleChime(){
+    beep(880, 0.14, 'sine', 0.1, 0);
+    beep(1175, 0.14, 'sine', 0.09, 70);
+  }
+
   function playSadSound(){
     [440,392,349,293].forEach((f,i)=>beep(f, 0.35, 'sawtooth', 0.16, i*180));
   }
@@ -813,8 +794,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
   }
 
   function playDoomSound(){
-    [220,196,175,147,110].forEach((f,i)=>beep(f, 0.4, 'sawtooth', 0.22, i*150));
-    beep(60, 0.7, 'square', 0.25, 780);
+    [220,175].forEach((f,i)=>beep(f, 0.3, 'sawtooth', 0.16, i*160));
   }
 
   function playFestivalMusic(){
@@ -824,10 +804,8 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
 
   function onJokerHit(){
     playDoomSound();
-    const appEl = document.getElementById('app');
     const dangerFlash = document.getElementById('dangerFlash');
     const darkFade = document.getElementById('darkFade');
-    appEl.classList.add('joker-shake');
     dangerFlash.classList.add('pulse');
     darkFade.classList.add('on');
 
@@ -840,20 +818,20 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
 
     const el = document.createElement('div');
     el.className = 'joker-text';
-    el.textContent = '残念!!!!!!';
+    el.style.fontSize = '13vw';
+    el.textContent = '残念!!';
     layer.appendChild(el);
 
-    setTimeout(()=>{ appEl.classList.remove('joker-shake'); }, 1900);
-    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); }, 1600);
+    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); }, 500);
     setTimeout(()=>{
       if(el.parentNode) el.parentNode.removeChild(el);
       if(cardImg.parentNode) cardImg.parentNode.removeChild(cardImg);
       darkFade.classList.remove('on');
-      document.getElementById('gameOverTitle').textContent = '😱💥 ジョーカー!!';
+      document.getElementById('gameOverTitle').textContent = '😢 ジョーカー…';
       document.getElementById('gameOverReason').textContent = 'まさかのジョーカーを引いてしまった…';
       document.getElementById('gameOverInfo').textContent = 'スコア: '+score+' / めくった回数: '+moves;
       showScreen('gameOverScreen');
-    }, 2050);
+    }, 1200);
   }
 
   function onMissLimitReached(){
@@ -870,60 +848,52 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     el.classList.add('flash');
   }
 
-  function spawnSparkleBurst(x, y){
+  function spawnSparkleBurst(x, y, count){
+    count = count || 26;
     const layer = document.getElementById('confettiLayer');
     const colors = ['#fff59d','#ffd54f','#d4af37','#fff6cf','#fff'];
-    for(let i=0;i<26;i++){
+    for(let i=0;i<count;i++){
       const s = document.createElement('div');
       s.className = 'sparkle-burst';
-      const angle = (Math.PI*2/18)*i + Math.random()*0.3;
-      const dist = 60 + Math.random()*90;
+      const angle = (Math.PI*2/count)*i + Math.random()*0.3;
+      const dist = 40 + Math.random()*60;
       const dx = Math.cos(angle)*dist;
       const dy = Math.sin(angle)*dist;
       s.style.left = x+'px';
       s.style.top = y+'px';
       s.style.background = colors[Math.floor(Math.random()*colors.length)];
       s.style.borderRadius = '50%';
-      s.style.transition = 'transform 0.7s cubic-bezier(.2,.8,.3,1), opacity 0.7s ease-out';
+      s.style.transition = 'transform 0.6s cubic-bezier(.2,.8,.3,1), opacity 0.6s ease-out';
       layer.appendChild(s);
       requestAnimationFrame(()=>{
         s.style.transform = `translate(${dx}px, ${dy}px) scale(0.2)`;
         s.style.opacity = '0';
       });
-      setTimeout(()=>{ if(s.parentNode) s.parentNode.removeChild(s); }, 750);
+      setTimeout(()=>{ if(s.parentNode) s.parentNode.removeChild(s); }, 650);
     }
   }
 
   function celebrateMatch(slotA, slotB){
-    flashScreen();
-    playLuckyFanfare();
+    playSimpleChime();
 
     const rectA = slotA.getBoundingClientRect();
     const rectB = slotB.getBoundingClientRect();
     const cx = (rectA.left+rectA.right+rectB.left+rectB.right)/4;
     const cy = (rectA.top+rectA.bottom+rectB.top+rectB.bottom)/4;
 
-    spawnSparkleBurst(rectA.left+rectA.width/2, rectA.top+rectA.height/2);
-    spawnSparkleBurst(rectB.left+rectB.width/2, rectB.top+rectB.height/2);
+    spawnSparkleBurst(cx, cy, 10);
 
     const layer = document.getElementById('luckyLayer');
-
-    const rays = document.createElement('div');
-    rays.className = 'lucky-rays';
-    rays.style.left = cx+'px';
-    rays.style.top = cy+'px';
-    layer.appendChild(rays);
-    setTimeout(()=>{ if(rays.parentNode) rays.parentNode.removeChild(rays); }, 1150);
-
-    const word = LUCKY_WORDS[Math.floor(Math.random()*LUCKY_WORDS.length)];
     const el = document.createElement('div');
     el.className = 'lucky-text';
-    el.textContent = word;
+    el.textContent = '✨';
+    el.style.fontSize = '9vw';
     el.style.left = cx+'px';
     el.style.top = cy+'px';
     el.style.transform = 'translate(-50%,-50%)';
+    el.style.animationDuration = '0.6s';
     layer.appendChild(el);
-    setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 950);
+    setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 600);
   }
 
   function celebrateLuckyChance(slotA, slotB){
@@ -1005,8 +975,10 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
 
   function spinCards(slots){
     slots.forEach(s=>{
-      s.classList.add('spin-effect');
-      setTimeout(()=>{ s.classList.remove('spin-effect'); }, 900);
+      const isVip = s.dataset.key === 'card_shacho' || s.dataset.key === 'card_joumu';
+      const cls = isVip ? 'spin-effect-big' : 'spin-effect';
+      s.classList.add(cls);
+      setTimeout(()=>{ s.classList.remove(cls); }, isVip ? 1300 : 900);
     });
   }
 
@@ -1093,40 +1065,28 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
   // 当たり1枚・残りはずれのギャンブル演出(はずれたら即ゲームオーバー)
   function onGambleGameOver(reasonText){
     playDoomSound();
-    setTimeout(playDoomSound, 500);
-    setTimeout(playDoomSound, 1900);
     const appEl = document.getElementById('app');
     const dangerFlash = document.getElementById('dangerFlash');
     const darkFade = document.getElementById('darkFade');
-    appEl.classList.add('joker-shake');
     dangerFlash.classList.add('pulse');
     darkFade.classList.add('on');
 
     const layer = document.getElementById('luckyLayer');
     const bigText = document.createElement('div');
-    bigText.className = 'joker-text';
-    bigText.textContent = '大ハズレ!!!';
+    bigText.className = 'sad-text';
+    bigText.textContent = 'はずれ…';
     layer.appendChild(bigText);
 
-    setTimeout(()=>{ appEl.classList.remove('joker-shake'); }, 700);
-    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); }, 700);
+    setTimeout(()=>{ dangerFlash.classList.remove('pulse'); }, 500);
 
     setTimeout(()=>{
       if(bigText.parentNode) bigText.parentNode.removeChild(bigText);
-      const overText = document.createElement('div');
-      overText.className = 'joker-text hell-text';
-      overText.textContent = 'ゲームオーバー…';
-      layer.appendChild(overText);
-      setTimeout(()=>{ if(overText.parentNode) overText.parentNode.removeChild(overText); }, 1500);
-    }, 1450);
-
-    setTimeout(()=>{
       darkFade.classList.remove('on');
-      document.getElementById('gameOverTitle').textContent = '💥😭 大ハズレ!! 😭💥';
+      document.getElementById('gameOverTitle').textContent = '😢 ゲームオーバー';
       document.getElementById('gameOverReason').textContent = reasonText;
       document.getElementById('gameOverInfo').textContent = 'スコア: '+score+' / めくった回数: '+moves;
       showScreen('gameOverScreen');
-    }, 3150);
+    }, 1300);
   }
 
   function startGambleChoice(n, opts){
