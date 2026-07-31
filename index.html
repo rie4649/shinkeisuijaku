@@ -647,7 +647,8 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 950);
   }
 
-  function showBigCardReveal(key, callback){
+  function showBigCardReveal(key, callback, duration){
+    duration = duration || 2000;
     const layer = document.getElementById('luckyLayer');
     const img = document.createElement('img');
     img.className = 'joker-card-big';
@@ -657,7 +658,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     setTimeout(()=>{
       if(img.parentNode) img.parentNode.removeChild(img);
       if(callback) callback();
-    }, 1600);
+    }, duration);
   }
 
   function lightningEffect(){
@@ -1151,30 +1152,41 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     scr.classList.remove('janken-in'); void scr.offsetWidth; scr.classList.add('janken-in');
   }
 
+  const HAND_KEY_MAP = {rock:'janken_gu', scissors:'janken_choki', paper:'janken_pa'};
+
   function onJankenPick(hand){
     document.querySelectorAll('.janken-btn').forEach(b=> b.classList.add('disabled'));
     const hands = ['rock','scissors','paper'];
     const cpu = hands[Math.floor(Math.random()*3)];
     const result = judgeJanken(hand, cpu);
     const resultEl = document.getElementById('jankenResult');
-    let msg = 'あなた:'+HAND_EMOJI[hand]+'　相手:'+HAND_EMOJI[cpu]+'<br>';
 
+    let statusMsg = '';
     if(result === 'win'){
-      msg += '🎉 かち!! ラッキーの2択が出るよ!';
+      statusMsg = '🎉 かち!! ラッキーの2択が出るよ!';
       playLuckyFanfare();
     } else if(result === 'lose'){
-      msg += '😭 まけ…まさかのゲームオーバー…';
+      statusMsg = '😭 まけ…まさかのゲームオーバー…';
       playSadSound();
     } else {
-      msg += 'あいこ!もう一回!';
+      statusMsg = 'あいこ!もう一回!';
     }
-    resultEl.innerHTML = msg;
+
+    resultEl.innerHTML =
+      '<div style="display:flex; align-items:center; justify-content:center; gap:14px;">' +
+        '<div style="text-align:center;"><div style="font-size:11px; opacity:0.8; margin-bottom:4px;">あなた</div>' +
+        '<img src="'+b64src(HAND_KEY_MAP[hand])+'" style="width:90px; height:112px; object-fit:cover; border-radius:10px; border:3px solid #a86a00;"></div>' +
+        '<div style="font-size:22px; font-weight:900;">VS</div>' +
+        '<div style="text-align:center;"><div style="font-size:11px; opacity:0.8; margin-bottom:4px;">相手</div>' +
+        '<img src="'+b64src(HAND_KEY_MAP[cpu])+'" style="width:90px; height:112px; object-fit:cover; border-radius:10px; border:3px solid #a86a00;"></div>' +
+      '</div>' +
+      '<div style="margin-top:10px;">'+statusMsg+'</div>';
 
     if(result === 'draw'){
       setTimeout(()=>{
         document.querySelectorAll('.janken-btn').forEach(b=> b.classList.remove('disabled'));
         resultEl.innerHTML = '';
-      }, 1100);
+      }, 1500);
       return;
     }
 
@@ -1185,12 +1197,12 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
           promptText: '✨ じゃんけん勝利!ラッキーの2択! ✨',
           pickScore: 20
         });
-      }, 1500);
+      }, 1900);
     } else {
       setTimeout(()=>{
         document.getElementById('jankenScreen').classList.add('hidden');
         onJankenLose();
-      }, 1500);
+      }, 1900);
     }
   }
 
