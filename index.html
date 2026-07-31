@@ -291,7 +291,7 @@
   .lux-btn:active { transform:translateY(3px); box-shadow:0 1px 0 #8a5500, 0 3px 8px rgba(0,0,0,0.5); }
   .screen p { font-size:15px; margin-bottom:8px; line-height:1.7; color:#e0e0e0; }
   .btn { margin-top:18px; padding:14px 34px; font-size:17px; font-weight:bold; border:none; border-radius:8px; background:#ffb300; color:#333; }
-  .janken-btn { margin-top:0; padding:6px; border-radius:16px; width:28vw; max-width:150px; height:35vw; max-height:190px; display:flex; align-items:center; justify-content:center; border:4px solid #a86a00; box-shadow:0 6px 0 #8a5500, 0 10px 20px rgba(0,0,0,0.5); background:#0d1b3d; overflow:hidden; }
+  .janken-btn { margin-top:0; padding:6px; border-radius:16px; width:30vw; max-width:190px; height:38vw; max-height:240px; display:flex; align-items:center; justify-content:center; border:4px solid #a86a00; box-shadow:0 6px 0 #8a5500, 0 10px 20px rgba(0,0,0,0.5); background:#0d1b3d; overflow:hidden; }
   .hand-img { width:100%; height:100%; object-fit:cover; border-radius:10px; }
   .janken-btn:active { transform:translateY(4px); box-shadow:0 2px 0 #8a5500, 0 4px 10px rgba(0,0,0,0.5); }
   .janken-btn.disabled { opacity:0.4; pointer-events:none; }
@@ -322,7 +322,7 @@
 
   <div class="screen" id="startScreen">
     <img id="titleCardImg" class="title-card-img" alt="関根商店神経衰弱">
-    <p style="margin-top:14px;">社員さん30人のカードで神経衰弱!<br>ランダムに8人ずつ登場、全ステージクリアを目指そう。</p>
+    <p style="margin-top:14px;">社員さん30人のカードで神経衰弱!<br>全ステージクリアを目指そう。</p>
     <button class="btn lux-btn" id="startBtn">▶ スタート</button>
   </div>
 
@@ -339,7 +339,7 @@
   </div>
 
   <div class="screen hidden" id="gameOverScreen" style="background:rgba(20,10,10,0.94);">
-    <h1 id="gameOverTitle" style="font-size:34px; color:#ff8a80; text-shadow:3px 3px 0 #4a0000, 0 0 26px rgba(255,138,128,0.8);">😭 残念!!!!!!</h1>
+    <h1 id="gameOverTitle" style="font-size:22px; color:#ff8a80; text-shadow:1px 1px 0 #4a0000;">ゲームオーバー</h1>
     <p id="gameOverReason" style="font-size:18px; font-weight:bold; color:#ff8a80;"></p>
     <p id="gameOverInfo"></p>
     <button class="btn" id="retryJokerBtn">もういちど</button>
@@ -387,7 +387,10 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
   let score = 0;
   let moves = 0;
   let missCount = 0;
-  const MAX_MISSES = 3;
+  const STAGE_MAX_MISSES = [3,4,5];
+  function currentMaxMisses(){
+    return STAGE_MAX_MISSES[stageIndex] !== undefined ? STAGE_MAX_MISSES[stageIndex] : 3;
+  }
   let matchedCount = 0;
   let stageTotal = 0;
   let flippedSlots = [];
@@ -406,7 +409,8 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     scoreLabel.textContent = score;
     if(missLabel){
       let hearts = '';
-      for(let i=0;i<MAX_MISSES;i++){ hearts += (i < MAX_MISSES-missCount) ? '❤️' : '🖤'; }
+      const maxM = currentMaxMisses();
+      for(let i=0;i<maxM;i++){ hearts += (i < maxM-missCount) ? '❤️' : '🖤'; }
       missLabel.textContent = hearts;
     }
   }
@@ -497,8 +501,9 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
       return;
     }
 
-    // 誰のカードでも均等な確率で特別演出が発生する
-    if(Math.random() < RANDOM_SPECIAL_CHANCE){
+    // 社長・常務は必ず回転演出、それ以外は均等な確率で特別演出が発生する
+    const isVipSpin = (key === 'card_shacho' || key === 'card_joumu');
+    if(isVipSpin || Math.random() < RANDOM_SPECIAL_CHANCE){
       // 進行中の未確定カードがあれば裏返しておく
       if(flippedSlots.length === 1){
         flippedSlots[0].classList.remove('flipped');
@@ -507,7 +512,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
       locked = true;
       moves++;
       updateTopbar();
-      setTimeout(()=> triggerRandomEffect(slot, key), 550);
+      setTimeout(()=> triggerRandomEffect(slot, key, isVipSpin ? 'spinEffect' : null), 550);
       return;
     }
 
@@ -538,7 +543,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
           a.classList.remove('flipped'); b.classList.remove('flipped');
           flippedSlots = [];
           locked = false;
-          if(missCount >= MAX_MISSES){
+          if(missCount >= currentMaxMisses()){
             onMissLimitReached();
           }
         }, 900);
@@ -546,7 +551,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     }
   }
 
-  function triggerRandomEffect(slot, key){
+  function triggerRandomEffect(slot, key, forcedName){
     const twin = Array.from(boardEl.querySelectorAll('.cardSlot')).find(s=>
       s!==slot && s.dataset.key===key && s.dataset.matched!=='true' && !s.classList.contains('gone')
     );
@@ -598,23 +603,6 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
           });
         }, 1500);
       },
-      function shuffleEffect(){
-        finishMatch();
-        score += 10;
-        updateTopbar();
-        celebrateMatch(pairForFx[0], pairForFx[1]);
-        spinCards(twin ? [slot,twin] : [slot]);
-        shuffleRemainingCards();
-        announceSpecial('シャッフルスペシャル!!かき混ぜます!!');
-        cleanupGone(1400);
-        setTimeout(()=>{
-          startGambleChoice(8, {
-            promptText: 'シャッフルスペシャル!8枚から1枚選んでね!(はずれたらゲームオーバー)',
-            winScore: 60,
-            missReason: 'シャッフルスペシャルの勝負に負けてしまった…'
-          });
-        }, 1500);
-      },
       function jankenEffect(){
         finishMatch();
         score += 10;
@@ -640,7 +628,9 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
       }
     ];
 
-    const chosen = effects[Math.floor(Math.random()*effects.length)];
+    const chosen = forcedName
+      ? (effects.find(f => f.name === forcedName) || effects[Math.floor(Math.random()*effects.length)])
+      : effects[Math.floor(Math.random()*effects.length)];
     chosen();
   }
 
@@ -827,7 +817,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
       if(el.parentNode) el.parentNode.removeChild(el);
       if(cardImg.parentNode) cardImg.parentNode.removeChild(cardImg);
       darkFade.classList.remove('on');
-      document.getElementById('gameOverTitle').textContent = '😢 ジョーカー…';
+      document.getElementById('gameOverTitle').textContent = 'ジョーカー…';
       document.getElementById('gameOverReason').textContent = 'まさかのジョーカーを引いてしまった…';
       document.getElementById('gameOverInfo').textContent = 'スコア: '+score+' / めくった回数: '+moves;
       showScreen('gameOverScreen');
@@ -836,7 +826,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
 
   function onMissLimitReached(){
     locked = true;
-    onGambleGameOver('失敗が'+MAX_MISSES+'回になってしまった…');
+    onGambleGameOver('失敗が'+currentMaxMisses()+'回になってしまった…');
   }
 
   const LUCKY_WORDS = ['ラッキー!!!','やったね!','ナイス!!','グッジョブ!'];
@@ -1082,7 +1072,7 @@ const ASSETS = {"title_card": "UklGRsz7AABXRUJQVlA4IMD7AACQsQKdASq8ArwCPlEijkUjo
     setTimeout(()=>{
       if(bigText.parentNode) bigText.parentNode.removeChild(bigText);
       darkFade.classList.remove('on');
-      document.getElementById('gameOverTitle').textContent = '😢 ゲームオーバー';
+      document.getElementById('gameOverTitle').textContent = 'ゲームオーバー';
       document.getElementById('gameOverReason').textContent = reasonText;
       document.getElementById('gameOverInfo').textContent = 'スコア: '+score+' / めくった回数: '+moves;
       showScreen('gameOverScreen');
