@@ -243,6 +243,8 @@
   .lux-btn:active { transform:translateY(3px); box-shadow:0 1px 0 #8a5500, 0 3px 8px rgba(0,0,0,0.5); }
   .screen p { font-size:15px; margin-bottom:8px; line-height:1.7; color:#e0e0e0; }
   .btn { margin-top:18px; padding:14px 34px; font-size:17px; font-weight:bold; border:none; border-radius:8px; background:#ffb300; color:#333; }
+  .janken-btn { margin-top:0; padding:14px 16px; font-size:26px; border-radius:50%; width:80px; height:80px; display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:13px; }
+  .janken-btn.disabled { opacity:0.4; pointer-events:none; }
   .btn:active { background:#ff9800; }
 
   #confettiLayer { position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:15; }
@@ -300,6 +302,17 @@
   <div id="darkFade"></div>
   <div id="matchFlash"></div>
   <div id="luckyLayer"></div>
+
+  <div class="screen hidden" id="jankenScreen" style="background:rgba(10,14,30,0.94); z-index:25;">
+    <h1 style="font-size:26px;">⚔️ いざ勝負!! ⚔️</h1>
+    <p>純子とじゃんけん!勝てばボーナス、負けたらハートが1つ減るよ</p>
+    <div id="jankenHands" style="display:flex; gap:16px; margin-top:10px;">
+      <button class="btn janken-btn" data-hand="rock">✊ グー</button>
+      <button class="btn janken-btn" data-hand="scissors">✌️ チョキ</button>
+      <button class="btn janken-btn" data-hand="paper">✋ パー</button>
+    </div>
+    <div id="jankenResult" style="margin-top:18px; font-size:20px; font-weight:bold; min-height:60px;"></div>
+  </div>
   <div id="confettiLayer"></div>
 </div>
 
@@ -464,6 +477,13 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
             flippedSlots = [];
             locked = false;
             checkStageClear();
+          } else if(key === 'card_junko'){
+            score += 10;
+            updateTopbar();
+            celebrateMatch(a, b);
+            setTimeout(()=>{ a.classList.add('gone'); b.classList.add('gone'); }, 700);
+            flippedSlots = [];
+            setTimeout(startJankenBattle, 900);
           } else {
             score += 10;
             updateTopbar();
@@ -814,6 +834,68 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     optionA.addEventListener('click', handlerA);
     optionB.addEventListener('click', handlerB);
   }
+
+  const HAND_EMOJI = {rock:'✊', scissors:'✌️', paper:'✋'};
+
+  function judgeJanken(player, cpu){
+    if(player === cpu) return 'draw';
+    if((player==='rock' && cpu==='scissors') ||
+       (player==='scissors' && cpu==='paper') ||
+       (player==='paper' && cpu==='rock')) return 'win';
+    return 'lose';
+  }
+
+  function startJankenBattle(){
+    document.getElementById('jankenResult').innerHTML = '';
+    document.querySelectorAll('.janken-btn').forEach(b=> b.classList.remove('disabled'));
+    document.getElementById('jankenScreen').classList.remove('hidden');
+  }
+
+  function onJankenPick(hand){
+    document.querySelectorAll('.janken-btn').forEach(b=> b.classList.add('disabled'));
+    const hands = ['rock','scissors','paper'];
+    const cpu = hands[Math.floor(Math.random()*3)];
+    const result = judgeJanken(hand, cpu);
+    const resultEl = document.getElementById('jankenResult');
+    let msg = 'あなた:'+HAND_EMOJI[hand]+'　純子:'+HAND_EMOJI[cpu]+'<br>';
+
+    if(result === 'win'){
+      score += 30;
+      if(missCount > 0) missCount--;
+      msg += '🎉 かち!! スコア+30 ハート回復!';
+      playLuckyFanfare();
+    } else if(result === 'lose'){
+      missCount++;
+      msg += '😭 まけ…ハートが1つ減った';
+      playSadSound();
+    } else {
+      msg += 'あいこ!もう一回!';
+    }
+    updateTopbar();
+    resultEl.innerHTML = msg;
+
+    if(result === 'draw'){
+      setTimeout(()=>{
+        document.querySelectorAll('.janken-btn').forEach(b=> b.classList.remove('disabled'));
+        resultEl.innerHTML = '';
+      }, 1100);
+      return;
+    }
+
+    setTimeout(()=>{
+      document.getElementById('jankenScreen').classList.add('hidden');
+      if(missCount >= MAX_MISSES){
+        onMissLimitReached();
+      } else {
+        locked = false;
+        checkStageClear();
+      }
+    }, 1700);
+  }
+
+  document.querySelectorAll('.janken-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> onJankenPick(btn.dataset.hand));
+  });
 
   function onStageCleared(){
     spawnConfetti();
