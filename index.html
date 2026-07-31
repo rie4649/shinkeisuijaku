@@ -47,11 +47,22 @@
     75% { transform:translateX(6px) rotate(4deg); }
   }
 
-  .cardSlot.choice-glow { animation: choicePulse 0.9s ease-in-out infinite; z-index:4; }
+  .cardSlot.choice-glow { animation: choicePulse 0.8s ease-in-out infinite, choiceBounce 0.6s ease-in-out infinite; z-index:6; position:relative; }
   @keyframes choicePulse {
-    0%,100% { box-shadow:0 0 0 0 rgba(255,213,79,0.9); filter:brightness(1); }
-    50% { box-shadow:0 0 0 10px rgba(255,213,79,0); filter:brightness(1.25); }
+    0%,100% { box-shadow:0 0 0 0 rgba(255,213,79,1), 0 0 20px 6px rgba(255,213,79,0.6); filter:brightness(1); }
+    50% { box-shadow:0 0 0 16px rgba(255,213,79,0), 0 0 40px 14px rgba(255,213,79,0.9); filter:brightness(1.4); }
   }
+  @keyframes choiceBounce {
+    0%,100% { transform:translateY(0) scale(1.05); }
+    50% { transform:translateY(-8px) scale(1.1); }
+  }
+  .cardSlot.choice-glow::after {
+    content:'👉'; position:absolute; left:50%; top:-38px; transform:translateX(-50%);
+    font-size:28px; animation: pointerBob 0.6s ease-in-out infinite; z-index:7;
+  }
+  @keyframes pointerBob { 0%,100%{ transform:translateX(-50%) translateY(0); } 50%{ transform:translateX(-50%) translateY(6px); } }
+  #boardDim { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:5; opacity:0; pointer-events:none; transition:opacity 0.3s ease; }
+  #boardDim.on { opacity:1; }
 
   #choicePrompt {
     position:fixed; top:44px; left:50%; transform:translateX(-50%) translateY(-20px);
@@ -245,6 +256,8 @@
   .btn { margin-top:18px; padding:14px 34px; font-size:17px; font-weight:bold; border:none; border-radius:8px; background:#ffb300; color:#333; }
   .janken-btn { margin-top:0; padding:14px 16px; font-size:26px; border-radius:50%; width:80px; height:80px; display:flex; align-items:center; justify-content:center; flex-direction:column; font-size:13px; }
   .janken-btn.disabled { opacity:0.4; pointer-events:none; }
+  .janken-in h1 { animation: jankenTitleIn 0.6s cubic-bezier(.2,1.6,.3,1); }
+  @keyframes jankenTitleIn { 0%{ transform:scale(0.2) rotate(-20deg); opacity:0; } 60%{ transform:scale(1.2) rotate(6deg); opacity:1; } 100%{ transform:scale(1) rotate(0deg); opacity:1; } }
   .btn:active { background:#ff9800; }
 
   #confettiLayer { position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:15; }
@@ -262,6 +275,7 @@
     <div><span class="label">スコア</span><span id="scoreLabel">0</span></div>
   </div>
 
+  <div id="boardDim"></div>
   <div id="boardWrap">
     <div id="board"></div>
   </div>
@@ -343,6 +357,7 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
   let matchedCount = 0;
   let stageTotal = 0;
   let flippedSlots = [];
+  let shachoChoiceActive = null;
   let locked = false;
 
   const boardEl = document.getElementById('board');
@@ -422,17 +437,42 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     hideAllScreens();
   }
 
+  const INSTANT_SPECIAL_KEYS = ['card_shacho','card_joumu','card_sengoku','card_junko'];
+
   function onCardClick(slot){
+    if(shachoChoiceActive){
+      if(slot === shachoChoiceActive.optionA || slot === shachoChoiceActive.optionB){
+        const chosen = slot;
+        const cb = shachoChoiceActive.onPick;
+        shachoChoiceActive = null;
+        cb(chosen);
+      }
+      return;
+    }
     if(locked) return;
     if(slot.classList.contains('flipped')) return;
     if(slot.dataset.matched === 'true') return;
     if(flippedSlots.length >= 2) return;
 
     slot.classList.add('flipped');
+    const key = slot.dataset.key;
 
-    if(slot.dataset.key === 'joker_card'){
+    if(key === 'joker_card'){
       locked = true;
       setTimeout(onJokerHit, 750);
+      return;
+    }
+
+    if(INSTANT_SPECIAL_KEYS.includes(key)){
+      // 進行中の未確定カードがあれば裏返しておく
+      if(flippedSlots.length === 1){
+        flippedSlots[0].classList.remove('flipped');
+        flippedSlots = [];
+      }
+      locked = true;
+      moves++;
+      updateTopbar();
+      setTimeout(()=> triggerInstantSpecial(slot, key), 550);
       return;
     }
 
@@ -444,55 +484,17 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       locked = true;
       const [a,b] = flippedSlots;
       if(a.dataset.key === b.dataset.key){
-        const key = a.dataset.key;
         setTimeout(()=>{
           a.dataset.matched = 'true'; b.dataset.matched = 'true';
           a.classList.add('matched'); b.classList.add('matched');
           matchedCount++;
-
-          if(key === 'card_shacho'){
-            score += 60;
-            if(missCount > 0) missCount--;
-            updateTopbar();
-            celebrateLuckyChance(a, b);
-            setTimeout(()=>{ a.classList.add('gone'); b.classList.add('gone'); }, 700);
-            flippedSlots = [];
-            setTimeout(startShachoBonus, 900);
-          } else if(key === 'card_joumu'){
-            score += 10;
-            updateTopbar();
-            celebrateMatch(a, b);
-            spinCards([a,b]);
-            setTimeout(()=>{ a.classList.add('gone'); b.classList.add('gone'); }, 700);
-            flippedSlots = [];
-            locked = false;
-            checkStageClear();
-          } else if(key === 'card_sengoku'){
-            score += 10;
-            updateTopbar();
-            celebrateMatch(a, b);
-            spinCards([a,b]);
-            shuffleRemainingCards();
-            setTimeout(()=>{ a.classList.add('gone'); b.classList.add('gone'); }, 700);
-            flippedSlots = [];
-            locked = false;
-            checkStageClear();
-          } else if(key === 'card_junko'){
-            score += 10;
-            updateTopbar();
-            celebrateMatch(a, b);
-            setTimeout(()=>{ a.classList.add('gone'); b.classList.add('gone'); }, 700);
-            flippedSlots = [];
-            setTimeout(startJankenBattle, 900);
-          } else {
-            score += 10;
-            updateTopbar();
-            celebrateMatch(a, b);
-            setTimeout(()=>{ a.classList.add('gone'); b.classList.add('gone'); }, 700);
-            flippedSlots = [];
-            locked = false;
-            checkStageClear();
-          }
+          score += 10;
+          updateTopbar();
+          celebrateMatch(a, b);
+          setTimeout(()=>{ a.classList.add('gone'); b.classList.add('gone'); }, 700);
+          flippedSlots = [];
+          locked = false;
+          checkStageClear();
         }, 500);
       } else {
         missCount++;
@@ -507,6 +509,75 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
         }, 900);
       }
     }
+  }
+
+  function triggerInstantSpecial(slot, key){
+    const twin = Array.from(boardEl.querySelectorAll('.cardSlot')).find(s=>
+      s!==slot && s.dataset.key===key && s.dataset.matched!=='true' && !s.classList.contains('gone')
+    );
+    if(twin) twin.classList.add('flipped');
+
+    function finishMatch(){
+      slot.dataset.matched = 'true';
+      slot.classList.add('matched');
+      if(twin){ twin.dataset.matched = 'true'; twin.classList.add('matched'); }
+      matchedCount++;
+    }
+    function cleanupGone(){
+      setTimeout(()=>{ slot.classList.add('gone'); if(twin) twin.classList.add('gone'); }, 700);
+    }
+    const pairForFx = [slot, twin || slot];
+
+    if(key === 'card_shacho'){
+      finishMatch();
+      score += 60;
+      if(missCount > 0) missCount--;
+      updateTopbar();
+      celebrateLuckyChance(pairForFx[0], pairForFx[1]);
+      cleanupGone();
+      setTimeout(startShachoBonus, 900);
+    } else if(key === 'card_joumu'){
+      finishMatch();
+      score += 10;
+      updateTopbar();
+      celebrateMatch(pairForFx[0], pairForFx[1]);
+      spinCards(twin ? [slot,twin] : [slot]);
+      announceSpecial('常務パワー!!回転タイム!!');
+      cleanupGone();
+      locked = false;
+      checkStageClear();
+    } else if(key === 'card_sengoku'){
+      finishMatch();
+      score += 10;
+      updateTopbar();
+      celebrateMatch(pairForFx[0], pairForFx[1]);
+      spinCards(twin ? [slot,twin] : [slot]);
+      shuffleRemainingCards();
+      announceSpecial('仙石シャッフル!!かき混ぜます!!');
+      cleanupGone();
+      locked = false;
+      checkStageClear();
+    } else if(key === 'card_junko'){
+      finishMatch();
+      score += 10;
+      updateTopbar();
+      celebrateMatch(pairForFx[0], pairForFx[1]);
+      cleanupGone();
+      setTimeout(startJankenBattle, 900);
+    }
+  }
+
+  function announceSpecial(text){
+    const layer = document.getElementById('luckyLayer');
+    const el = document.createElement('div');
+    el.className = 'lucky-text';
+    el.textContent = text;
+    el.style.fontSize = '8vw';
+    el.style.left = '50%';
+    el.style.top = '38%';
+    el.style.transform = 'translate(-50%,-50%)';
+    layer.appendChild(el);
+    setTimeout(()=>{ if(el.parentNode) el.parentNode.removeChild(el); }, 950);
   }
 
   // ---------- 音 ----------
@@ -782,10 +853,12 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
       document.getElementById('app').appendChild(el);
     }
     el.classList.add('show');
+    document.getElementById('boardDim').classList.add('on');
   }
   function hideChoicePrompt(){
     const el = document.getElementById('choicePrompt');
     if(el) el.classList.remove('show');
+    document.getElementById('boardDim').classList.remove('on');
   }
 
   function startShachoBonus(){
@@ -801,38 +874,35 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
     optionB.classList.add('choice-glow');
     showChoicePrompt();
 
-    function pick(chosen){
-      optionA.classList.remove('choice-glow');
-      optionB.classList.remove('choice-glow');
-      hideChoicePrompt();
-      optionA.removeEventListener('click', handlerA);
-      optionB.removeEventListener('click', handlerB);
+    shachoChoiceActive = {
+      optionA, optionB,
+      onPick: function(chosen){
+        optionA.classList.remove('choice-glow');
+        optionB.classList.remove('choice-glow');
+        hideChoicePrompt();
 
-      const twin = Array.from(boardEl.querySelectorAll('.cardSlot')).find(s=>
-        s!==chosen && s.dataset.key===chosen.dataset.key && s.dataset.matched!=='true' && !s.classList.contains('gone')
-      );
-      if(twin){
-        chosen.classList.add('flipped'); twin.classList.add('flipped');
-        setTimeout(()=>{
-          chosen.dataset.matched='true'; twin.dataset.matched='true';
-          chosen.classList.add('matched'); twin.classList.add('matched');
-          matchedCount++;
-          score += 20;
-          updateTopbar();
-          celebrateMatch(chosen, twin);
-          setTimeout(()=>{ chosen.classList.add('gone'); twin.classList.add('gone'); }, 700);
+        const twin = Array.from(boardEl.querySelectorAll('.cardSlot')).find(s=>
+          s!==chosen && s.dataset.key===chosen.dataset.key && s.dataset.matched!=='true' && !s.classList.contains('gone')
+        );
+        if(twin){
+          chosen.classList.add('flipped'); twin.classList.add('flipped');
+          setTimeout(()=>{
+            chosen.dataset.matched='true'; twin.dataset.matched='true';
+            chosen.classList.add('matched'); twin.classList.add('matched');
+            matchedCount++;
+            score += 20;
+            updateTopbar();
+            celebrateMatch(chosen, twin);
+            setTimeout(()=>{ chosen.classList.add('gone'); twin.classList.add('gone'); }, 700);
+            locked = false;
+            checkStageClear();
+          }, 500);
+        } else {
           locked = false;
           checkStageClear();
-        }, 500);
-      } else {
-        locked = false;
-        checkStageClear();
+        }
       }
-    }
-    function handlerA(e){ e.stopPropagation(); pick(optionA); }
-    function handlerB(e){ e.stopPropagation(); pick(optionB); }
-    optionA.addEventListener('click', handlerA);
-    optionB.addEventListener('click', handlerB);
+    };
   }
 
   const HAND_EMOJI = {rock:'✊', scissors:'✌️', paper:'✋'};
@@ -848,7 +918,9 @@ const ASSETS = {"card_akaike": "UklGRqA8AABXRUJQVlA4IJQ8AABQ2ACdASosAaQBPm0wlEck
   function startJankenBattle(){
     document.getElementById('jankenResult').innerHTML = '';
     document.querySelectorAll('.janken-btn').forEach(b=> b.classList.remove('disabled'));
-    document.getElementById('jankenScreen').classList.remove('hidden');
+    const scr = document.getElementById('jankenScreen');
+    scr.classList.remove('hidden');
+    scr.classList.remove('janken-in'); void scr.offsetWidth; scr.classList.add('janken-in');
   }
 
   function onJankenPick(hand){
